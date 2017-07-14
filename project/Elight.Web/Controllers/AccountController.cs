@@ -62,8 +62,8 @@ namespace Elight.Web.Controllers
                 return Warning("该账户已被禁用，请联系管理员。");
             }
             var userLogOnEntity = _userLogOnService.GetByAccount(userEntity.Id);
-            string inputPassword = password.DESEncrypt(userLogOnEntity.SecretKey).MD5Encrypt();
-            if (inputPassword != userLogOnEntity.Password)
+            //string inputPassword = password.MD5Encrypt();//.DESEncrypt(userLogOnEntity.SecretKey).MD5Encrypt();
+            if (password != userLogOnEntity.Password)
             {
                 LogHelper.Write(Level.Info, "系统登录", "密码错误", userEntity.Account, userEntity.RealName);
                 return Warning("密码错误，请重新输入。");
