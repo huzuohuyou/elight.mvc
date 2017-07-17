@@ -85,6 +85,7 @@ namespace Elight.Web.Areas.System.Controllers
         public ActionResult GetForm(string primaryKey)
         {
             var entity = _permissionService.Get(primaryKey);
+            entity.ParentId = entity.ParentId == "0" ? "-1" : entity.ParentId;
             return Content(entity.ToJson());
         }
 
@@ -93,6 +94,11 @@ namespace Elight.Web.Areas.System.Controllers
         {
             var data = _permissionService.GetList();
             var treeList = new List<TreeSelect>();
+            TreeSelect root = new TreeSelect();
+            root.id = "-1";
+            root.text = "无";
+            root.parentId = "0";
+            treeList.Add(root);
             foreach (Sys_Permission item in data)
             {
                 TreeSelect model = new TreeSelect();

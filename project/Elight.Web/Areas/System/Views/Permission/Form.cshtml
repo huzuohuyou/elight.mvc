@@ -24,7 +24,7 @@
         <div class="layui-inline">
             <label class="layui-form-label">父级</label>
             <div class="layui-input-inline">
-                <select class="select2" lay-ignore name="ParentId" lay-verify="required" id="ParentId" style="width: 190px">
+                <select class="select2" lay-ignore name="ParentId"  id="ParentId" style="width: 190px">
                 </select>
             </div>
         </div>
@@ -58,7 +58,7 @@
         <div class="layui-inline">
             <label class="layui-form-label">图标</label>
             <div class="layui-input-inline">
-                <input type="text" name="Icon" id="Icon" placeholder="请选择图标" autocomplete="off" class="layui-input">
+                <input lay-verify="required" type="text" name="Icon" id="Icon" placeholder="请选择图标" autocomplete="off" class="layui-input">
             </div>
             <button class="layui-btn layui-btn-primary" id="btnSetIcon" style="position: absolute; left: 244px;">
                 <i class="layui-icon">&#xe615;</i>
