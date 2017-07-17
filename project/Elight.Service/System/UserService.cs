@@ -37,7 +37,7 @@ namespace Elight.Service
             model.ModifyTime = DateTime.Now;
             var updateColumns = new List<string>() {
                 "RealName", "NickName", "Gender", "Birthday", "MobilePhone",
-                "Email", "Signature", "Address", "OrganizeId" , "ManagerId",
+                "Email", "Signature", "Address", "DepartmentId" , 
                 "IsEnabled", "SortCode", "ModifyUser" , "ModifyTime"};
             return _userRepository.Update(model, updateColumns);
         }
