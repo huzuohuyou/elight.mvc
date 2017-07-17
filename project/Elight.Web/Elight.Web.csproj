@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -330,6 +331,8 @@
     <Compile Include="Areas\System\Controllers\UserController.cs" />
     <Compile Include="Areas\System\Controllers\UserLogOnController.cs" />
     <Compile Include="Areas\System\SystemAreaRegistration.cs" />
+    <Compile Include="Areas\TestCenter\Controllers\InGroupController.cs" />
+    <Compile Include="Areas\TestCenter\TestCenterAreaRegistration.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -391,6 +394,8 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Areas\TestCenter\Views\web.config" />
+    <Content Include="Areas\TestCenter\Views\InGroup\Index.cshtml" />
     <None Include="Properties\PublishProfiles\ad.pubxml" />
     <None Include="Properties\PublishProfiles\elight.pubxml" />
     <Content Include="Views\Account\ModifyPwd.cshtml" />
@@ -405,6 +410,8 @@
     <Folder Include="App_Data\" />
     <Folder Include="Areas\System\Models\" />
     <Folder Include="Areas\System\Views\Shared\" />
+    <Folder Include="Areas\TestCenter\Models\" />
+    <Folder Include="Areas\TestCenter\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Elight.Entity\Elight.Entity.csproj">
