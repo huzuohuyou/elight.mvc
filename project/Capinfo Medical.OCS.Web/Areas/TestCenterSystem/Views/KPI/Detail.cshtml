@@ -1,0 +1,103 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">指标代码</label>
+            <div class="layui-input-inline">
+                <input type="hidden" name="SD_EKPI_ID" />
+                <input type="text" name="SD_EKPI_CODE" lay-verify="required" placeholder="请输入指标代码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">指标名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_EKPI_NAME" lay-verify="required" placeholder="请输入指标名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">指标简称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_EKPI_ALIAS" lay-verify="required" placeholder="请输入指标简称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">指标类别</label>
+            <div class="layui-input-inline">
+                <select name="SD_EKPI_CAT" lay-verify="required">
+                    <option value="">请选择类别</option>
+                    <option value="10000">基本信息</option>
+                    <option value="10001">检查</option>
+                    <option value="10002">检验</option>
+                    <option value="10002">医嘱</option>
+                    <option value="10002">病理</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">正负向</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="IS_POSITIVE" value="1" title="正向&nbsp" >
+                <input type="radio" lay-skin="primary" name="IS_POSITIVE" value="0" title="负向&nbsp&nbsp">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">排序码</label>
+            <div class="layui-input-inline">
+                <input type="number" name="ORDER_NO" lay-verify="number" placeholder="请输入排序" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-inline" style="width: 514px;">
+            <textarea name="SD_EKPI_ALGO" placeholder="请输入内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use('form', function () {
+        var form = layui.form();
+        //$("#OrganizeId").bindSelect({
+        //    url: "/System/Organize/GetListTreeSelect"
+        //});
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/KPI/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+
+        //form.on('submit(add)', function (data) {
+        //    $.formSubmit({
+        //        url: "/TestCenterSystem/KPI/Form",
+        //        data: data.field
+        //    });
+        //    return false;
+        //});
+    });
+
+</script>

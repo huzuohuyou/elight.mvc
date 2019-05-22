@@ -1,0 +1,161 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>检查类别</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        @*<div class="panel-body">*@
+        <div id="toolbar" class="elight-table-toolbar">
+            <div @*class="layui-btn-group"*@>
+                <button onclick="btn_add()" class="layui-btn layui-btn-primary layui-btn-small" style="margin-bottom:10px">
+                    <i class="fa fa-plus-square-o" aria-hidden="true"></i>添加
+                </button>
+            </div>
+
+        </div>
+        <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+            <thead>
+                <tr></tr>
+            </thead>
+        </table>
+        @*</div>*@
+
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js?v=10"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<!--内容模板-->
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+</script>
+
+<script type="text/javascript">
+
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = 'ORDER_NO';
+    var type = 'asc';
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        initGrid();
+
+        table.on('tool(gridData)', function (obj) {
+            console.log(obj.data);
+            var data = obj.data;
+            if (obj.event === 'del') {
+                btn_delete(data.TERM_CAT_CONF_ID);
+            } else if (obj.event === 'edit') {
+                btn_edit(data.TERM_CAT_CONF_ID);
+            }
+        })
+    });
+    //显示内容
+    function initGrid() {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/CheckDic/CategoryGetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                 { filed: 'TERM_CAT_CONF_ID', checkbox: true, style: 'display:none', fixed: true },
+                { field: 'TERM_CAT_NAME', title: '检查类别', width: 440  },
+                { fixed: 'right', title: '操作', width: 215, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+        ////刷新父窗体
+        //refrenshParent();
+    }
+    //添加
+    function btn_add() {
+        var no = totalCount + 1;
+        $.layerOpen({
+            id: "addCat",
+            title: "添加类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/CheckDic/CategoryFrom",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                table.reload('grid');
+            }
+        });
+    }
+    //删除
+    function btn_delete(id) {
+        $.layerConfirm({
+            content: "确定删除当前数据吗? ",
+            callback: function () {
+                $.formSubmit({
+                    url: "/TestCenterSystem/CheckDic/CategoryDelete?primaryKey=" + id,
+                    close: false,
+                    success: function () {
+                        //刷新父窗体
+                        refrenshParent();
+                        initGrid();
+
+                    }
+                });
+            }
+        });
+    }
+    //编辑
+    function btn_edit(id) {
+        $.layerOpen({
+            id: "edit",
+            title: "修改类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/CheckDic/CategoryFrom?primaryKey=" + id,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                initGrid();
+            }
+        });
+    }
+    //根据指定url刷新页面
+    function refrenshParent() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/CheckDic/Index") > 0) {
+                parent[i].initGrid('TERM_CAT_CONF_ID', 'desc');
+                //parent[i].btn_searchKeyWord('TERM_CAT_NAME', 'desc');
+                parent[i].refreshTypeName("");
+                break;
+            }
+        }
+    }
+
+</script>

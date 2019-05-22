@@ -1,0 +1,365 @@
+﻿@{
+    Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+
+<label class="layui-form-label layui-inline" style="top: -3px;max-width: 120px;/* right: -50px */width: 120px;;padding-left: 0px;padding-right: 0px;text-align: left;">请选择查看内容:</label>
+<div class="layui-input-inline" style="width: 160px">
+    <select id="project" name="project" style="width: 160px;height:30px;cursor:pointer" onchange="project_change(this)">
+        <option value="">全部</option>
+        @{
+            if (ViewBag.ProjectInfo != null)
+            {
+                var list = ViewBag.ProjectInfo;
+                for (var i = 0; i < list.Count; i++)
+                {
+                    <option value="@list[i].id">@list[i].text</option>
+                }
+            }
+        }
+    </select>
+</div>
+<div class="layui-input-inline" style="width: 200px;display:none" id="sdId">
+    <select id="desease" name="desease" lay-filter="desease" style="width: 200px;height:30px;cursor:pointer" onchange="sd_change(this)">
+        <option value="">全部</option>
+    </select>
+</div>
+<div class="layui-input-inline">
+    <button class="layui-btn layui-btn-small layui-btn-normal" onclick="Reset()">重置@*<i class="layui-icon">&#x1006;</i>*@</button>
+</div>
+
+<br />
+<table id="proOrSDGridList" class="layui-table" lay-filter="proOrSDGridData" style="margin-top:0px;height:30px">
+    <thead>
+        <tr>
+            <th style="display:none">id</th>
+            <th>名称</th>
+            <th>数据项完成数</th>
+            <th>消耗资源（小时）</th>
+            <th>成员（个）</th>
+            <th>最后更新时间</th>
+        </tr>
+    </thead>
+    <tbody id="gridbody"></tbody>
+</table>
+
+<!--    v1.3
+@*<table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;height:30px">
+    <thead>
+        <tr>
+            <th style="display:none">项目id</th>
+            <th>项目</th>
+            <th>类型</th>
+            <th>状态</th>
+            <th>用时（天）</th>
+            <th>成员数量</th>
+            <th>创建时间</th>
+        </tr>
+    </thead>
+    <tbody id="gridbody"></tbody>
+</table>*@
+@*<table id="gridListSD" class="layui-table" lay-filter="gridDataSD" style="margin-top:0px;display:none;height:30px">
+    <thead>
+        <tr>
+            <th style="display:none">病种ID</th>
+            <th style="display:none">项目ID</th>
+            <th style="display:none">病种code</th>
+            <th>病种</th>
+            <th>入组数量</th>
+            <th>数据项数量</th>
+            <th>指标数量</th>
+            <th>状态</th>
+            <th>用时（天）</th>
+            <th>成员数量</th>
+            <th>创建时间</th>
+        </tr>
+    </thead>
+    <tbody id="gridbodySD"></tbody>
+</table>*@
+-->
+
+<script type="text/javascript">
+
+    var paging;
+    var currentPage;
+    var keyWord = "";
+    var layerCount = 0;
+    var layerIndex;
+
+    function project_change(data) {
+        if (data.value === "") {
+            document.getElementById("sdId").style.display = "none";
+            document.getElementById("PROJECT_AND_SD_GRID").style.display = "none";
+        }
+        else {
+            layerLoading();//添加loading层
+            document.getElementById("sdId").style.display = "inline-block";
+            document.getElementById("PROJECT_AND_SD_GRID").style.display = "block";
+            refreshSD(data.value, $("#desease"));
+        }
+
+        initProOrSDGrid();
+        ExcuteProjectMethods();
+
+        /*   V1.3
+        if (data.value === "") {
+            initGrid();
+            document.getElementById("PROJECT_AND_SD_GRID").style.display = "none";
+        }
+        else {
+            initSDGrid();
+            document.getElementById("PROJECT_AND_SD_GRID").style.display = "block";
+            ExcuteMethods();
+        }
+        */
+    }
+
+    function sd_change(data) {
+        layerLoading();
+
+        initProOrSDGrid();
+        //initSDGrid();
+        ExcuteProjectMethods();
+    }
+
+    function ExcuteProjectMethods() {
+        if (document.getElementById("PROJECT_AND_SD_GRID").style.display != "none") {
+            if ($('#TAB_DATAITEM').hasClass('layui-this'))//数据项tab页
+            {
+                ExcuteDataItemMethods();
+                ExcuteUsersMethods();
+            }
+            else if ($('#TAB_USER').hasClass('layui-this'))//项目下成员tab页
+                ExcuteUsersMethods();
+        }
+    }
+
+    function ExcuteDataItemMethods() {
+        initProgress();//数据项状态分布
+        initProjectDataItem();//数据项趋势图
+        /* V1.3
+        if ($('#TAB_PROJECT_INGROUP').hasClass('layui-this'))//数据项趋势图
+            initProjectIngroup();
+        else if ($('#TAB_PROJECT_DATAITEM').hasClass('layui-this'))
+            initProjectDataItem();
+        else if ($('#TAB_PROJECT_KPI').hasClass('layui-this'))
+            initProjectKPI();
+        */
+    }
+
+    function ExcuteUsersMethods() {
+        /*  V1.3
+        if ($('#TAB_USERS_TOTALCONTRIBUTION').hasClass('layui-this'))//成员整体分析
+            initTotalCon();
+        else if ($('#TAB_USERS_TOTALTIME').hasClass('layui-this'))
+            initTotalTime();
+        else if ($('#TAB_USERS_TOTALEFFICIENCY').hasClass('layui-this'))
+            initTotalEfficiency();
+
+        if ($('#TAB_USER_CONTRIBUTION').hasClass('layui-this'))//成员分类分析
+            initContribute();
+        else if ($('#TAB_USER_TIME').hasClass('layui-this'))
+            ExcuteTimeMethods();
+        else if ($('#TAB_USER_EFFICIENCY').hasClass('layui-this'))
+            ExcuteEfficiencyMethods();
+        */
+        initContribute();//成员对比分析
+
+        //initUser();//成员趋势图
+        //initDataItem();
+        /* V1.3
+        if ($('#TAB_INGROUP').hasClass('layui-this'))
+            initIngroup();
+        else if ($('#TAB_DATAITEM').hasClass('layui-this'))
+            initDataItem();
+        else if ($('#TAB_KPI').hasClass('layui-this'))
+            initKPI();
+        */
+    }
+
+    function ExcuteTimeMethods() {
+        if ($('#TAB_USER_TIME_INGROUP').hasClass('layui-this'))
+            initTimeByIngroup();
+        else if ($('#TAB_USER_TIME_DATAITEM').hasClass('layui-this'))
+            initTimeByDataItem();
+        else
+            initTimeByKPI();
+    }
+
+    function ExcuteEfficiencyMethods() {
+        if ($('#TAB_USER_EFFICIENCY_INGROUP').hasClass('layui-this'))
+            initEfficiencyByIngroup();
+        else if ($('#TAB_USER_EFFICIENCY_DATAITEM').hasClass('layui-this'))
+            initEfficiencyByDataItem();
+        else
+            initEfficiencyByKPI();
+    }
+
+    function Reset() {
+        $("#project").get(0).selectedIndex = 0;
+        //$("#desease").empty();
+        //$("#desease").append("<option value=''>全部</option>");
+        document.getElementById("sdId").style.display = "none";
+        initProOrSDGrid();
+        document.getElementById("PROJECT_AND_SD_GRID").style.display = "none";
+    }
+
+    initProOrSDGrid()
+    function initProOrSDGrid() {
+        keyWord = $("#project").val() + ";" + $("#desease").val();
+        $.ajax({
+            url: '/TestCenterSystem/Analysis/GetStatList?keyWord=' + keyWord,
+            data: {},
+            type: "get",
+            dataType: "json",
+            //async: false,
+            success: function (data) {
+                if (data.Item1) {
+                    $("#proOrSDGridList #gridbody").html('');
+                    $.each(data.Item2, function (i, n) {
+                        $("#proOrSDGridList #gridbody").append("<tr id=" + 'template' + ">"
+                                                + "<td style=" + 'display:none' + ">" + (n.ID) + "</td>"
+                                                + "<td>" + (n.NAME) + "</td>"
+                                                + "<td>" + (n.DATAITME_COUNT) + "</td>"
+                                                + "<td>" + (n.HOURS) + "</td>"
+                                                + "<td>" + (n.MEMBER_COUNT) + "</td>"
+                                                + "<td>" + (n.UPD_DATE) + "</td>"
+                                                + "</tr>");
+                    });
+                }
+                else {
+                    $.layerMsg(data.Item2, "error");
+                }
+                layerCount += 1;
+                layerClose(layerCount);
+            }
+        });
+
+        /*    v1.3
+        //document.getElementById("gridList").style.display = "table";
+        //document.getElementById("gridListSD").style.display = "none";
+
+        //keyWord = $("#project").val() + ";" + $("#desease").val();
+        //$.ajax({
+        //    url: '/TestCenterSystem/Analysis/GetStatList?keyWord=' + keyWord,//field=' + field + '&type=' + type + '&
+        //    data: {},
+        //    type: "get",
+        //    dataType: "json",
+        //    //async: false,
+        //    success: function (data) {
+        //        if (data.Item1) {
+        //            $("#gridList #gridbody").html('');
+        //            $.each(data.Item2, function (i, n) {
+        //                $("#gridList #gridbody").append("<tr id=" + 'template' + ">"
+        //                                        + "<td style=" + 'display:none' + ">" + (n.TC_PROJ_ID) + "</td>"
+        //                                        + "<td>" + (n.TC_PROJ_NAME) + "</td>"
+        //                                        + "<td>" + (n.TC_PROJ_TYPE == "1" ? "质控" : (n.TC_PROJ_TYPE == "2" ? "科研" : "未指定")) + "</td>"
+        //                                        + "<td>" + (n.STATE == "1" ? "进行中" : (n.STATE == "2" ? "已结束" : "未指定")) + "</td>"
+        //                                        + "<td>" + (n.DAYS) + "</td>"
+        //                                        + "<td>" + (n.MEMBER_COUNT) + "</td>"
+        //                                        + "<td>" + (n.UPD_DATE) + "</td>"
+        //                                        + "</tr>");
+
+        //                //var row = $("#template").clone();
+        //                //row.find("#TC_PROJ_ID").text(n.TC_PROJ_ID);
+        //                //row.find("#TC_PROJ_NAME").text(n.TC_PROJ_NAME);
+        //                //row.find("#TC_PROJ_TYPE").text();
+        //                //row.find("#STATE").text(n.STATE == "1" ? "进行中" : (n.STATE == "2" ? "已结束" : "未指定"));
+        //                //row.find("#DAYS").text(n.DAYS);
+        //                //row.find("#MEMBER_COUNT").text(n.MEMBER_COUNT);
+        //                //row.find("#UPD_DATE").text(n.UPD_DATE);
+        //                //row.appendTo("#gridList tbody");//添加到模板的容器中
+        //            });
+        //        }
+        //        else {
+        //            $.layerMsg(data.Item2, "error");
+        //        }
+        //    }
+        //});
+        */
+
+    }
+    /*   v1.3
+    function initSDGrid() {
+        document.getElementById("gridList").style.display = "none";
+        document.getElementById("gridListSD").style.display = "table";
+
+        //document.getElementById("gridList").style.visibility = "hidden";
+        //document.getElementById("gridListSD").style.visibility = "visible";
+
+        keyWord = $("#project").val() + ";" + $("#desease").val();
+        $.ajax({
+            url: '/TestCenterSystem/Analysis/GetStatList?keyWord=' + keyWord,//field=' + field + '&type=' + type + '&
+            data: {},
+            type: "get",
+            dataType: "json",
+            //async: false,
+            success: function (data) {
+                if (data.Item1) {
+                    $("#gridListSD #gridbodySD").html('');
+                    $.each(data.Item2, function (i, n) {
+                        $("#gridListSD #gridbodySD").append("<tr id=" + 'templateSD' + ">"
+                                           + "<td style=" + 'display:none' + ">" + (n.SD_ID) + "</td>"
+                                           + "<td style=" + 'display:none' + ">" + (n.TC_PROJ_ID) + "</td>"
+                                           + "<td style=" + 'display:none' + ">" + (n.SD_CODE) + "</td>"
+                                           + "<td>" + (n.SD_NAME) + "</td>"
+                                           + "<td>" + (n.INGROUP_COUNT) + "</td>"
+                                           + "<td>" + (n.DATAITEM_COUNT) + "</td>"
+                                           + "<td>" + (n.KPI_COUNT) + "</td>"
+                                           + "<td>" + (n.STATE == "1" ? "进行中" : (n.STATE == "2" ? "已结束" : "未指定")) + "</td>"
+                                           + "<td>" + (n.DAYS) + "</td>"
+                                           + "<td>" + (n.MEMBER_COUNT) + "</td>"
+                                           + "<td>" + (n.UPD_DATE) + "</td>"
+                                           + "</tr>");
+                    });
+                }
+                else {
+                    $.layerMsg(data.Item2, "error");
+                }
+            }
+        });
+
+    }
+    */
+
+    //刷新项目对应的病种
+    function refreshSD(proId, select) {
+        $.ajax({
+            url: "/TestCenterSystem/Analysis/GetSDList",
+            data: { primaryKey: proId },
+            type: "post",
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                if (data.length > 0) {
+                    select.empty();
+                    //select.append("<option value=''>请选择病种</option>");
+                    select.append("<option value=''>全部</option>");
+                    for (var index = 0; index < data.length; index++) {
+                        select.append("<option value='" +
+                            data[index].id +
+                            "'>" +
+                            data[index].text +
+                            "</option>");
+                    }
+                } else {
+                    select.empty();
+                    select.append("<option value=''>全部</option>");
+                }
+                //form.render('select');
+            }
+        });
+    }
+
+    function layerLoading() {
+        layerIndex = layer.load(1, {
+            shade: [0.13, '#000']
+        });//加载loading层
+        layerCount = 0;
+    }
+
+    function layerClose(count) {
+        if (count == 4)
+            layer.close(layerIndex);
+    }
+
+</script>

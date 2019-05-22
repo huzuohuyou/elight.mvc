@@ -1,0 +1,151 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item" style="display:none">
+        <div class="layui-inline">
+            <label class="layui-form-label">病种id</label>
+            <div class="layui-input-inline">
+                <input  type="text" name="SD_ID" />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">项目编码</label>
+            <div class="layui-input-inline">
+                <input type="text" name="TC_PROJ_ID" value="@ViewBag.TC_PROJ_ID" />
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">病种代码</label>
+            <div class="layui-input-inline">
+                <input style="display:none" type="text" name="SD_ID" />
+                <input style="display:none" type="text" name="TC_PROJ_ID" value="@ViewBag.TC_PROJ_ID"/>
+                <input type="text" name="SD_CODE" lay-verify="required" maxlength="20" placeholder="请输入病种代码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">病种名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_NAME" lay-verify="required" maxlength="60" placeholder="请输入病种名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">病种别称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_ALIAS" lay-verify="required" maxlength="60" placeholder="请输入病种简称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">病种类型</label>
+            <div class="layui-input-inline">
+                <select name="SD_TYPE_CODE" id="SD_TYPE_CODE" lay-verify="required">
+                    <option value="">请选择病种类型</option>
+                    <option value="0">专病</option>
+                    <option value="1">全院</option>
+                    <option value="2">专科</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="padding-top: 0px;">数据项分类字典</label>
+            <div class="layui-input-inline">
+                <select id="ITEM_CAT_PA_CODE" name="ITEM_CAT_PA_CODE" lay-ignore class="select2" style="width: 190px;"></select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label" style="padding-top: 0px;">自定义数据项分类字典</label>
+            <div class="layui-input-inline">
+                <select lay-ignore name="CITEM_CAT_PA_CODE" class="select2" id="CITEM_CAT_PA_CODE"  style="width: 190px;"></select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="padding-top: 0px;">指标分类字典</label>
+            <div class="layui-input-inline">
+                <select lay-ignore name="EKPI_CAT_PA_CODE" class="select2" id="EKPI_CAT_PA_CODE" style="width: 190px;"></select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">排序码</label>
+            <div class="layui-input-inline">
+                <select name="ORDER_NO" id="ORDER_NO" lay-verify="required">
+                    <option value="">请选择顺序号</option>
+                    @for (var num = 1; num <= ViewBag.count; num++)
+                    {
+                        <option value="@num">@num</option>
+                    }
+                </select> </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">有效标志</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="VALID_FLAG" value="1" title="有效&nbsp" checked>
+                <input type="radio" lay-skin="primary" name="VALID_FLAG" value="0" title="无效&nbsp&nbsp">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form();
+        var layer = parent.layer || layui.layer;
+        var primaryKey = $.getQueryString("primaryKey");
+
+        $("#ITEM_CAT_PA_CODE").bindSelect({
+            url: "/TestCenterSystem/SD/GetITEM_CAT_PA_CODE",
+            title: '数据项分类字典'
+        });
+
+        $("#CITEM_CAT_PA_CODE").bindSelect({
+            url: "/TestCenterSystem/SD/GetCITEM_CAT_PA_CODE",
+            title: '自定义数据项分类字典'
+        });
+
+        $("#EKPI_CAT_PA_CODE").bindSelect({
+            url: "/TestCenterSystem/SD/GetEKPI_CAT_PA_CODE",
+            title: '指标分类字典'
+        });
+
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/SD/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/SD/Form",
+                data: data.field
+            });
+            //layer.closeAll();
+            return false;
+        });
+    });
+
+</script>

@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "CustomDepend";
+    Layout = "~/Areas/TestCenterSystem/Views/DataItem/ItemTest.cshtml";
+}
+@*<div class="panel-body">*@
+<div id="toolbar" class="elight-table-toolbar">
+    <div class="layui-btn-group">
+        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_mapping_add()"><i class="layui-icon">&#xe654;</i>添加映射 </button>
+        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_select()"><i class="layui-icon">&#xe60b;</i>查看 </button>
+        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_delete()"><i class="layui-icon">&#xe640;</i>删除 </button>
+    </div>
+    @*</div>*@
+    <table id="gridList" class="layui-form layui-table table-hover elight-table" style="background-color:white;" lay-skin="line">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" lay-skin="primary">
+                </th>
+                <th>顺序号</th>
+                <th>数据项代码</th>
+                <th>数据项名称</th>
+            </tr>
+        </thead>
+        <tbody id="content"></tbody>
+    </table>
+    <div id="paged" style="padding-left:20px;"></div>
+</div>
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input type="checkbox" lay-skin="primary" value="{{item.Id}}">
+        </td>
+        <td>{{item.Account}}</td>
+        <td>{{item.RealName}}</td>
+        <td>{{item.DeptName}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script>
+    var count;
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['form', 'paging'], function () {
+        var form = layui.form();
+        paging = layui.paging();
+        initGrid();
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/DataItem/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    //$("#form").formSerialize(data);
+                    
+                }
+            });
+        }
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/System/User/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                //keyWord: $("#keyWord").val()
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 5
+            },
+            success: function (result) {
+                count = result.count;
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+            }
+        });
+    }
+    function btn_delete() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的数据项。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/TestCenterSystem/DataItem/Delete',
+                    data: { userIds: ids.join() },
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+    function btn_select() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail",
+            title: "查看数据项",
+            width: "680px",
+            height: "530px",
+            content: "/TestCenterSystem/DataItem/Form?primaryKey=" + ids[0].value,//?ItemCount=" + ids[0],
+            btn: null
+        });
+    }
+    function btn_mapping_add() {
+        $.layerOpen({
+            id: "mapping",
+            title: "添加映射",
+            width: "730px",
+            height: "500px",
+            content: "/TestCenterSystem/DataItemDepend/AddCommonItem",//?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+</script>

@@ -1,0 +1,117 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>首信医联 OCS系统</title>
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
+    <link rel="bookmark" type="image/ico" href="~/favicon.ico" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/login.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="elight-product-box animated fadeInUp">
+        <h2>首信医联 OCS系统</h2>
+        <div style="">
+        </div>
+        <div style="overflow:auto;height:300px">
+        </div>
+    </div>
+    <div class="elight-login-box animated fadeInRight">
+        <div class="elight-login-header">登录</div>
+        <div class="elight-login-body">
+            <form class="layui-form">
+                <div class="layui-form-item">
+                    <label class="login-icon"><i class="layui-icon">&#xe612;</i></label>
+                    <input id="username" type="text" name="username" lay-verify="required" autocomplete="off" placeholder="账号" class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <label class="login-icon">
+                        <i class="layui-icon">&#xe642;</i>
+                    </label>
+                    <input id="password" type="password" name="password" lay-verify="required" autocomplete="off" placeholder="登录密码" class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <div class="login-code-box" hidden>
+                        <label class="login-icon"><i class="layui-icon">&#xe62d;</i></label>
+                        <input type="text" name="verifycode" @*lay-verify="required"*@ autocomplete="off" placeholder="验证码" class="layui-input">
+                        <img id="verifyCode" src="/Account/VerifyCode" title="点击更换验证码">
+                    </div>
+                    <input id="ck_rmbUser" class="elight-pull-right" type="checkbox" lay-skin="primary" name="isSaveAccount" value="true" title="记住账号" />
+                </div>
+                <div class="layui-form-item">
+                    <button class="layui-btn btn-submit" lay-submit lay-filter="login">立即登录</button>
+                </div>
+            </form>
+        </div>
+        <div class="elight-login-fooder"></div>
+    </div>
+</body>
+</html>
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/layui/layui.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script>
+    layui.use(['layer', 'form'], function () {
+        //var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form();
+        form.on('submit(login)', function (data) {
+            data.field.password = $.md5(data.field.password);
+            $(".btn-submit").html("正在登录...");
+            $(".btn-submit").attr('disabled', true).addClass('layui-disabled');
+            $.ajax({
+                url: "/Account/Login",
+                data: data.field,
+                type: "post",
+                dataType: "json",
+                success: function (result) {
+                    if (result.state == 1) {
+                        window.location.href = "/Home/Index";
+                        $(".btn-submit").html("登录成功，跳转中...");
+                        save();
+                    } else {
+                        $(".btn-submit").html("立即登录");
+                        $(".btn-submit").attr('disabled', false).removeClass('layui-disabled');
+                        $("#verifyCode").trigger('click');
+                        $.layerMsg(result.message, result.state);
+                    }
+                }
+            });
+            return false;
+        });
+        $("#verifyCode").click(function () {
+            $(this).attr("src", "/Account/VerifyCode?r=" + Math.random());
+        });
+    });
+
+    //记住用户名密码
+    function save() {
+        if ($("#ck_rmbUser").prop("checked")) {
+            var username = $("#username").val();
+            var password = $("#password").val();
+            $.cookie("rmbUser", "true", { expires: 7 }); //存储一个带7天期限的cookie
+            $.cookie("username", username, { expires: 7 });
+            $.cookie("password", password, { expires: 7 });
+        } else {
+            $.cookie("rmbUser", "false", { expire: -1 });
+            $.cookie("username", "", { expires: -1 });
+            $.cookie("password", "", { expires: -1 });
+        }
+    };
+
+    $(document).ready(function () {
+        if ($.cookie("rmbUser") == "true") {
+            $("#ck_rmbUser").prop("checked", true);
+            $("#username").val($.cookie("username"));
+            $("#password").val($.cookie("password"));
+        }
+    })
+</script>

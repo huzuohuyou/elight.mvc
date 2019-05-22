@@ -1,0 +1,243 @@
+﻿@{
+    ViewBag.Title = "添加自定义数据项";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top:25px;margin-left:10px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">数据项代码:</label>
+            <div class="layui-input-inline">
+                <input type="hidden" name="SD_ID" />
+                <input type="hidden" name="SD_ITEM_ID" />
+                <input type="hidden" name="SD_CODE" />
+                <input type="hidden" name="SD_ITEM_SRC" />
+                <input type="hidden" name="VALID_FLAG" />
+                <input type="text" name="SD_ITEM_CODE" class="layui-input" autocomplete="off" disabled />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">数据项名称:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_ITEM_NAME" class="layui-input" disabled />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">数据项简称:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_ITEM_ALIAS" class="layui-input" autocomplete="off" disabled />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">数据项类别:</label>
+            <div class="layui-input-inline">
+                <select name="SD_ITEM_CAT_ID">
+                    <option value="">请选择数据项类别</option>
+                    @{
+                        if (ViewBag.ItemType == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.ItemType;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">是否结果值:</label>
+            <div class="layui-input-block">
+                <input type="radio" name="IS_RESULT" value="1" title="是&nbsp" />
+                <input type="radio" name="IS_RESULT" value="0" title="否&nbsp" checked />
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:142px">顺序号:</label>
+            <div class="layui-input-inline">
+                <select name="ORDER_NO">
+                    @{
+                        if (ViewBag.ItemCount == null)
+                        {
+                            <option>1</option>
+                        }
+                        else
+                        {
+                            var count = ViewBag.ItemCount;
+                            for (var i = 1; i <= count; i++)
+                            {
+                                <option>@i</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" @*style="width:141px"*@>数据项类型:</label>
+            <div class="layui-input-inline">
+                <select name="SD_ITEM_DATA_TYPE" lay-filter="itemDataType">
+                    <option value="">请选择数据项类型</option>
+                    <option value="string">字符串</option>
+                    <option value="data">数值</option>
+                    <option value="date">日期</option>
+                    <option value="datetime">时间</option>
+                    <option value="bool">布尔</option>
+                    <option value="enum">枚举</option>
+                    <option value="object">对象</option>
+                </select>
+            </div>
+        </div>
+        <div id="enumDiv" class="layui-inline" style="display:none;padding-left:100px;float:left;">
+            <div id="enumResult" class="layui-inline">
+                <div class="layui-inline" id="1">
+                    <label id="lbl1" class="layui-form-label" style="width:40px"></label>
+                    <div id="txt1" class="layui-inline">
+                        <input id="textEnum1" name="enum1" class="layui-input" type="text" style="width:150px" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="boolDiv" class="layui-inline" style="display:none">
+            <div class="layui-inline">
+                <select name="selectBool" id="selectBool" onclick="btn_click(this)">
+                    <option value="">布尔值结果</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">小数位数:</label>
+            <div class="layui-input-inline">
+                <select name="NUM_PRECISION">
+                    <option value="">请选择小数位数</option>
+                    <option value="0">不设小数点</option>
+                    <option value="1">1位</option>
+                    <option value="2">2位</option>
+                    <option value="3">4位</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">结果单位:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_ITEM_UNIT" class="layui-input" disabled />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">逻辑描述:</label>
+        <div class="layui-input-block" style="margin-right:40px">
+            <textarea name="SD_ITEM_ALGO" class="layui-textarea" disabled></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    var strEnumHtml = "";
+    var enumCount = 2;
+    layui.use(['form', 'layer', 'element'], function () {
+        var form = layui.form();
+        var layer = layui.layer;
+        var element = layui.element();
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/DataItem/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                    $("select[name=SD_ITEM_CAT_ID]").find("option[value='" + data.SD_ITEM_CAT_ID + "']").attr("selected", true); //根据值去除选中状态
+                    $("select[name=ORDER_NO]").find("option[value='" + data.ORDER_NO + "']").attr("selected", true); //根据值去除选中状态
+                    $("select[name=SD_ITEM_DATA_TYPE]").find("option[value='" + data.SD_ITEM_DATA_TYPE + "']").attr("selected", true); //根据值去除选中状态
+                    if (data.SD_ITEM_DATA_TYPE == 'enum')
+                        GetEnum(primaryKey, data.SD_ITEM_DATA_TYPE);
+                }
+            });
+        }
+        form.render();
+    });
+    //设置页面显示状态
+    function isShowEnum(type) {
+        switch (type) {
+            case "enum":
+                $("#enumDiv").css({ "display": "inline" });
+                $("#boolDiv").css({ "display": "none" });
+                $("select[name=NUM_PRECISION]").attr("lay-verify", "");
+                break;
+            case "bool":
+                $("#enumDiv").css({ "display": "none" });
+                $("#boolDiv").css({ "display": "inline" });
+                $("select[name=NUM_PRECISION]").attr("lay-verify", "");
+                break;
+            case "data":
+                $("select[name=NUM_PRECISION]").attr("lay-verify", "required");
+                break;
+            default:
+                $("#enumDiv").css({ "display": "none" });
+                $("#boolDiv").css({ "display": "none" });
+                $("select[name=NUM_PRECISION]").attr("lay-verify", "");
+                break;
+        }
+    }
+    //获取枚举值
+    function GetEnum(primaryKey, datatype) {
+        $.ajax({
+            url: "/TestCenterSystem/DataItem/GetEnumList",
+            data: { primaryKey: primaryKey },
+            type: "post",
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                isShowEnum(datatype);
+                for (var index = 0; index < data.length; index++) {
+                    if (index != 0)
+                        btn_addenum(data[index].ITEM_OPTION_ID);
+                    else
+                        $('#lbl1').text(data[index].ITEM_OPTION_ID);
+                    $('#enumResult').children('div')[index].children[1].children[0].value = data[index].ITEM_OPTION_NAME;
+                }
+            }
+        });
+    }
+    //动态添加枚举项
+    function btn_addenum(id) {
+        var index = enumCount++;
+        var text = id == undefined ? "" : id;
+        $("#enumResult").append("<div id='" + index + "'>" +
+            "<label id='lbl" + index + "' class='layui-form-label' style='width:40px'>" + text + "</label>" +
+            "<div  id='txt" + index + "' class='layui-inline'>" +
+            "<input name='enum" + index + "' class='layui-input' type='text' style='width:150px' />" + "</div>" +
+            "</div>");
+        return false;
+    }
+
+    // 动态添加select中的项option:
+    function btn_addOption() {
+        var selectObj = document.getElementById("selectEnum");
+        //alert(selectObj.length);
+        var text = $("#textEnum").val();
+        var index = $("select[name=selectEnum]  option").length + 1;
+        selectObj.options[selectObj.length] = new Option(text, index);
+        strEnumHtml = $("select[name=selectEnum]").html();
+        return false;
+    }
+</script>

@@ -1,0 +1,161 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-inline" style="display:none">
+        <label class="layui-form-label">指标ID</label>
+        <div class="layui-input-inline">
+            <input type="text" name="KPI_ID" maxlength="60" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">分子</label>
+            <div class="layui-input-inline">
+                <select name="FEN_ZI" lay-verify="required" lay-search="">
+                    <option value="">请选择分子</option>
+                    @{
+                        if (ViewBag.SD_SITEM_INFOS == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.SD_SITEM_INFOS;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].SITEM_ID">@list[i].SITEM_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">分母</label>
+            <div class="layui-input-inline">
+                <select name="FEN_MU" @*lay-verify="required"*@ lay-search="">
+                    <option value="">请选择分母</option>
+                    @{
+                        if (ViewBag.SD_SITEM_INFOS == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.SD_SITEM_INFOS;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].SITEM_ID">@list[i].SITEM_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">分子名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="Z_NAME" maxlength="60" autocomplete="off" class="layui-input">
+            </div>
+
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">分母名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="M_NAME" maxlength="60" autocomplete="off" class="layui-input">
+            </div>
+
+        </div>
+        <div class="layui-form-item" style="display: none">
+            <div class="layui-input-inline">
+                <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">分子取值</label>
+            <div class="layui-input-inline">
+                <select name="Z_RESULT_TYPE" lay-verify="required" lay-search="">
+                    <option value="">请选择分子取值模式</option>
+                    <option value="1">最早</option>
+                    <option value="2">最新</option>
+                    <option value="3">总和</option>
+                    <option value="4">总数</option>
+                    <option value="5">平均数</option>
+                    <option value="6">中位数</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">分母取值</label>
+            <div class="layui-input-inline">
+                <select name="M_RESULT_TYPE" lay-search="">
+                    <option value="">请选择分母取值模式</option>
+                    <option value="1">最早</option>
+                    <option value="2">最新</option>
+                    <option value="3">总和</option>
+                    <option value="4">总数</option>
+                    <option value="5">平均数</option>
+                    <option value="6">中位数</option>
+                </select>
+            </div>
+
+        </div>
+        <div class="layui-form-item" style="display: none">
+            <div class="layui-input-inline">
+                <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use('form', function () {
+        var form = layui.form();
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/SKPI/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+        //initOrders();
+        //自定义验证规则
+        form.verify({
+            ORDER_NO: function (value) {
+                if (value < 1) {
+                    return '请填写正整数。';
+                }
+            }
+
+        });
+        form.render();
+
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/SKPI/Form",
+                data: data.field
+            });
+            return false;
+        });
+    });
+
+
+</script>

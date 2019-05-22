@@ -1,0 +1,317 @@
+﻿@{
+    Layout = null;
+    //var count = ViewBag.list.count(); //as IList<TC_SD_FILTER_INFO>;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>入组管理</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js?v=0"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="~/Content/framework/js/paging.js?v=0"></script>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group"></div>
+                <label class="layui-form-label layui-right" style="width:auto;float:right;">入组规则数量：<span id="Count"></span>&nbsp;条</label>
+            </div>
+            <table id="gridList" class="layui-form layui-table table-hover elight-table" lay-skin="line">
+                <thead>
+                    <tr style="text-align:center;">
+                        <th>
+                            @*<input type="checkbox" lay-skin="primary">*@
+                        </th>
+                        <th>入组规则代码</th>
+                        <th>入组规则名称</th>
+                        <th>项目</th>
+                        <th>病种</th>
+                        <th>有效标识</th>
+                        <th>状态</th>
+                        <th>结果数量</th>
+                        <th>最后操作者</th>
+                        <th>最后操作时间</th>
+                    </tr>
+                </thead>
+                <!--内容容器-->
+                <tbody id="content"></tbody>
+            </table>
+            <div id="paged"></div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr style="text-align:center;">
+        <td>
+            <input type="checkbox" lay-skin="primary" value="{{item.SD_FILTER_ID}}">
+        </td>
+        <td>{{item.SD_FILTER_CODE}}</td>
+        <td>{{item.SD_FILTER_NAME}}</td>
+        <td>{{item.TC_PROJ_NAME}}</td>
+        <td>{{item.SD_NAME}}</td>
+        <td>
+            @*style="height:20px"*@
+            {{# if(item.VALID_FLAG==1){ }}
+            <input type="checkbox" checked name="open" value="{{item.SD_FILTER_ID}}" lay-skin="switch" lay-filter="switchTest" title="开关">
+            {{# }else{ }}
+            <input type="checkbox" name="closed" value="{{item.SD_FILTER_ID}}" lay-skin="switch" lay-filter="switchTest" title="开关">
+            {{# } }}
+        </td>
+        <td>
+            {{# if(item.PROC_STAT_CODE==1){ }} 未执行 @*<i class="layui-icon">&#x1006;</i>*@
+            {{# }else if(item.PROC_STAT_CODE==2){ }} 已执行  @*<i class="layui-icon">&#xe605;</i>*@
+            {{# }else if(item.PROC_STAT_CODE==3){ }} 已清空
+            {{# }else { }} 已锁定
+            {{# } }}
+        </td>
+        <td>{{item.AMOUNT}}</td>
+        <td>{{item.UPD_USER_ID}}</td>
+        <td>{{item.UPD_DATE}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="9">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form', 'layer'], function () {
+        var layer = parent.layer || layui.layer;
+        var form = layui.form();
+        paging = layui.paging();
+        initGrid();
+        $("#toolbar").authorizeButton();
+        //$('#btnSearch').click(initGrid);
+        //$('#keyWord').bindEnterEvent(initGrid);
+        //监听指定开关
+        form.on('switch(switchTest)', function (data) {
+            //var ids = $("#gridList").gridSelectedSwitchRowValue();
+            ids = data.value;
+            $.formSubmit({
+                url: "/TestCenterSystem/InGroup/Switch?primaryKey=" + ids,
+                data: { primaryKey: ids },
+                success: function () {
+                    initGrid();
+                }
+            });
+        });
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/InGroup/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                //keyWord: $("#keyWord").val()
+            }
+            ,
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function (result) {
+                //获取条数
+                document.getElementById("Count").innerHTML = result.count;
+            }
+        });
+    }
+
+    function btn_add() {
+        if (document.getElementById("Count").innerHTML == "0") {
+            $.layerOpen({
+                id: "add",
+                title: "添加入组",
+                width: "670px",
+                height: "530px",
+                content: "/TestCenterSystem/InGroup/Form",
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    initGrid();
+                }
+            });
+        }
+        else {
+            $.layerMsg("最多能添加一条入组规则。", "warning");
+        }
+    }
+
+    function btn_edit() {
+        var ids = $("#gridList").gridSelectedRowDleteValue();// gridSelectedRowAndSwitchValue
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录编辑。", "warning");
+            return;
+        }
+
+        $.layerOpen({
+            id: "edit",
+            title: "编辑入组",
+            width: "670px",
+            height: "530px",
+            content: "/TestCenterSystem/InGroup/Form?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_delete() {
+        var flag = true;//用来解决多次点击，只触发一次事件
+        var ids = $("#gridList").gridSelectedRowDleteValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的记录。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                if (flag) {
+                    flag = false;
+                    $.formSubmit({
+                        url: '/TestCenterSystem/InGroup/Delete',
+                        data: { primaryKey: ids[0] },
+                        success: function () {
+                            initGrid();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function btn_detail() {
+        var ids = $("#gridList").gridSelectedRowDleteValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail",
+            title: "查看入组",
+            width: "670px",
+            height: "530px",
+            content: "/TestCenterSystem/InGroup/Detail?primaryKey=" + ids[0],
+            btn: null
+        });
+    }
+    //配置
+    function btn_configure() {
+        var ids = $("#gridList").gridSelectedRowDleteValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录进行配置。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "configure",
+            title: "配置",
+            width: "1000px",
+            height: "618px",
+            content: "/TestCenterSystem/InGroup/Config?primaryKey=" + ids[0],
+            btn: null,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+        //parent.tab.tabAdd({
+        //    href: "/TestCenterSystem/InGroup/Config?primaryKey=" + ids[0], //地址.value
+        //    icon: "",
+        //    title: "入组配置"
+        //});
+    }
+
+    //function btn_exportSql() {
+    //    $.ajax({
+    //        type: "GET",  //提交方式
+    //        url: "/TestCenterSystem/InGroup/ExportSQL",
+    //        data: {
+
+    //        },//数据，这里使用的是Json格式进行传输
+    //        success: function (result) {//返回数据根据结果进行相应的处理
+    //            var obj = JSON.parse(result);
+    //            if (obj.message == "无可导出数据！！！") {
+    //                top.layer.msg(obj.message);
+    //            } else {
+    //                downloadFile(obj.message);
+    //            }
+
+    //        }
+    //    });
+
+    //}
+    //function downloadFile(url) {
+    //    try {
+    //        var elemIF = document.createElement("iframe");
+    //        elemIF.src = url;
+    //        elemIF.style.display = "none";
+    //        document.body.appendChild(elemIF);
+    //    } catch (e) {
+
+    //    }
+    //}
+
+    /**
+ * 获取数据表格(带有开关键)选中行主键值。
+ */
+    $.fn.gridSelectedRowAndSwitchValue = function () {
+        var $selectedRows = $(this).children('tbody').find("input[lay-skin=primary][type=checkbox]:checked");
+        var $selectedSwitchRows = $(this).children('tbody').find("input[lay-skin=switch][type=checkbox]:checked");
+        var result = [];
+        if ($selectedRows.length > 0 && $selectedSwitchRows.length > 0) {
+            for (var i = 0; i < $selectedRows.length; i++) {
+                for (var j = 0; j < $selectedSwitchRows.length; j++)
+                    if ($selectedRows[i].value == $selectedSwitchRows[j].value)
+                        result.push($selectedRows[i].value);
+            }
+        }
+        return result;
+    }
+
+    /**
+* 获取开关键选中行主键值。
+*/
+    $.fn.gridSelectedSwitchRowValue = function () {
+        var $selectedSwitchRows = $(this).children('tbody').find("input[lay-skin=switch][type=checkbox]:checked");
+        var result = [];
+        if ($selectedSwitchRows.length > 0) {
+            for (var i = 0; i < $selectedSwitchRows.length; i++) {
+                result.push($selectedSwitchRows[i].value);
+            }
+        }
+        return result;
+    }
+
+    /**
+ * 获取数据表格选中行主键值。
+ */
+    $.fn.gridSelectedRowDleteValue = function () {
+        var $selectedRows = $(this).children('tbody').find("input[lay-skin=primary][type=checkbox]:checked");
+        var result = [];
+        if ($selectedRows.length > 0) {
+            for (var i = 0; i < $selectedRows.length; i++) {
+                result.push($selectedRows[i].value);
+            }
+        }
+        return result;
+    }
+
+</script>

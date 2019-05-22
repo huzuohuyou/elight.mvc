@@ -1,0 +1,260 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>类别维护</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .breathe-btn {
+            position: relative;
+            border: 0px solid #2b92d4;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,.3);
+            overflow: hidden;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#6cc3fe), to(#21a1d0));
+            -webkit-animation-timing-function: ease-in-out;
+            -webkit-animation-name: breathe;
+            -webkit-animation-duration: 2700ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-direction: alternate;
+        }
+
+        @@-webkit-keyframes breathe {
+            0% {
+                opacity: .2;
+                box-shadow: 0 1px 2px rgba(255,255,255,0.1);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 1px 30px rgba(59,255,255,1);
+            }
+        }
+    </style>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            height: 30px;
+            width: 120px;
+            line-height: 30px;
+            line-height: 36px\9;
+            border: 1px solid #e6e6e6;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="panel animated fadeIn" style="margin-top: 0">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group" style="padding-bottom: 10px">
+                    <button id="term-add" onclick="btn_add()" class="layui-btn layui-btn-primary layui-btn-small"> <i class="fa fa-plus-square-o" aria-hidden="true"></i> 添加</button>
+                </div>
+                <form id="form" class="layui-form" style="float:right;width:460px;"></form>
+            </div>
+            <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<!--内容模板-->
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+</script>
+
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = 'TERM_TYPE';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        initGrid1();
+        table.on('tool(gridData)', function (obj) {
+            console.log(obj.data);
+            var data = obj.data;
+            if (obj.event === 'del') {
+                btn_delete(data.TERM_CAT_CONF_ID);
+            } else if (obj.event === 'edit') {
+                btn_edit(data.TERM_CAT_CONF_ID);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            console.log("limit:" + $("[href]").val());
+            field = obj.field;
+            type = obj.type;
+        });
+    });
+
+    //初始化表格
+    function initGrid1() {
+        console.log($("[href]").val() == "");
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/Medicine/GetListCateMain?field=' + field + '&type=' + type + '&termtype=1',
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'TERM_CAT_CONF_ID', style: 'display:none' },
+                { field: 'TERM_CAT_NAME', title: '药物类别', width: 220, sort: true },
+                { field: 'TERM_CAT1_NAME', title: '一级类别名称', width: 150, sort: true },
+                { field: 'TERM_CAT2_NAME', title: '二级类别名称', width: 150, sort: true },
+                { field: 'TERM_CAT3_NAME', title: '三级类别名称', width: 150, sort: true },
+                { fixed: 'right', title: '操作', width: 120, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+    //根据指定url刷新页面-药品字典页面
+    function refrenshParent() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/Medicine/Index") > 0) {
+                parent[i].initGrid();
+                break;
+            }
+        }
+    }
+    //根据指定url刷新页面-关键字页面
+    function refrenshParentKW() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/Medicine/Index") > 0) {
+                parent[i].initGridKW();
+                break;
+            }
+        }
+    }
+    //根据指定url刷新页面-下拉框
+    function refrenshParentSelector() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/Medicine/Index") > 0) {
+                parent[i].refreshTypeName();
+                break;
+            }
+        }
+    }
+
+    //添加
+    function btn_add() {
+        $.layerOpen({
+            id: "addC",
+            title: "新增类别",
+            width: "530px",
+            height: "430px",
+            content: "/TestCenterSystem/Medicine/FormCate?termtype=1",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid1();
+                refrenshParentSelector();
+            }
+        });
+    }
+    //编辑
+    function btn_edit(id) {
+        $.layerOpen({
+            id: "edit",
+            title: "编辑类别",
+            width: "530px",
+            height: "430px",
+            content: "/TestCenterSystem/Medicine/FormCate?primaryKeyCate=" + id + "&termtype=1",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid1();
+                refrenshParent();
+                refrenshParentKW();
+                refrenshParentSelector();
+            }
+        });
+    }
+    //删除
+    function btn_delete(id) {
+        var ifDelSuccess;
+        var ifTheLast;
+        var content;
+        $.ajax({
+            url: "/TestCenterSystem/Medicine/DeleteTermTypeConn",
+            data: { primaryKeyTermTypeConn: id },
+            type: 'get',
+            success: function (data) {
+                console.log(data);
+                ifDelSuccess = data.ifDelSuccess;
+                if (ifDelSuccess == "0") {
+                    $.layerConfirm({
+                        content: "此化学名在药品字典和关键字中有关联,不能删除！",
+                        btn: null
+                    });
+                }
+                if (ifDelSuccess == "1") {
+                    $.ajax({
+                        url: "/TestCenterSystem/Medicine/DeleteTermType",
+                        data: { primaryKeyTermType: id },
+                        type: 'get',
+                        success: function (data) {
+                            ifTheLast = data.ifTheLast;
+                            if (ifTheLast == "0") {
+                                content = "你确定删除吗？";
+                            }
+                            if (ifTheLast == "1") {
+                                content = "删除此类别将删除对应的药品类别,你确定删除吗？";
+                            }
+                            $.layerConfirm({
+                                content: content,
+                                callback: function () {
+                                    $.formSubmit({
+                                        url: "/TestCenterSystem/Medicine/DeleteCate?primaryKeyCate=" + id,
+                                        close: false,
+                                        success: function () {
+                                            initGrid1();
+                                            refrenshParentSelector();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+
+    }
+</script>

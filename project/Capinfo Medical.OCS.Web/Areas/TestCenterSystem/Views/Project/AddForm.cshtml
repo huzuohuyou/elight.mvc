@@ -1,0 +1,244 @@
+﻿@{
+    ViewBag.Title = "AddForm";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<div id="form" class="layui-form" @*class="panel-body"*@ style="margin-top: -10px;padding-top:10px">
+    <div class="layui-form" style="margin-top: 15px;">
+        @Html.AntiForgeryToken()
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label" style="text-align: left; left: 50px">项目名称：</label>
+                <div class="layui-input-inline" style="text-align: left; left: 50px">
+                    <input type="hidden" name="TC_PROJ_ID">
+                    <input type="text" name="TC_PROJ_NAME" style="width: 190px" lay-verify="required" placeholder="请输入项目名称" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label" style="text-align: left; left: 50px">项目代码：</label>
+                <div class="layui-input-inline" style="text-align: left; left: 50px">
+                    <input type="text" name="TC_PROJ_CODE" style="width: 190px" lay-verify="required" placeholder="请输入项目代码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label" style="text-align: left; left: 50px">项目类型：</label>
+                <div class="layui-input-block" style="text-align: left; left: 50px">
+                    <input type="radio" name="TC_PROJ_TYPE" value="1" title="质控" checked="">
+                    <input type="radio" name="TC_PROJ_TYPE" value="2" title="科研">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--CDR配置-->
+    <blockquote class="layui-elem-quote" style="padding: 0px; border-left: 5px solid #1E9FFF;">
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; width: auto"><strong>CDR配置</strong></label>
+        </div>
+    </blockquote>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">IP地址：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="hidden" name="CDR_DB_CONF_ID">
+                <input type="text" name="CDR_SERVER_NAME" id="CDR_SERVER_NAME" style="width: 190px" lay-verify="required" autocomplete="off" placeholder="192.168.1.1" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">用户名：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="CDR_DB_USER" id="CDR_DB_USER" style="width: 190px" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">密码：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="CDR_DB_PWD" id="CDR_DB_PWD" style="width: 190px" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="text-align: left; padding-left: 150px">
+            <div class="layui-inline">
+                <input type="submit" lay-submit class="layui-btn layui-btn-normal layui-btn-small" lay-filter="testCDRConnect" value="测试连接" />
+            </div>
+            <div class="layui-inline" id="CDRdataBase" style="text-align: left; left: 50px; visibility: hidden">
+                <select name="CDR_DB_NAME" id="CDR_DB_NAME" lay-filter="CDR_DB_NAME">
+                    <option></option>
+                </select>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label" id="cdrMessage" style="text-align: left; width: auto;margin-left:30px"></label>
+            </div>
+        </div>
+    </div>
+    <!--单元测试环境配置-->
+    <blockquote class="layui-elem-quote" style="padding: 0px; border-left: 5px solid #1E9FFF;">
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; width: auto"><strong>单元测试环境配置</strong></label>
+        </div>
+    </blockquote>
+    <div class="layui-form">
+        @Html.AntiForgeryToken()
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">IP地址：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="hidden" name="UNIT_DB_CONF_ID">
+                <input type="text" name="UNIT_SERVER_NAME" id="UNIT_SERVER_NAME" style="width: 190px" lay-verify="required" autocomplete="off" placeholder="192.168.1.1" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">用户名：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="UNIT_DB_USER" id="UNIT_DB_USER" style="width: 190px" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="text-align: left; left: 50px">密码：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="UNIT_DB_PWD" id="UNIT_DB_PWD" style="width: 190px" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="text-align: left; padding-left: 150px">
+            <div class="layui-inline">
+                <input type="submit" lay-submit class="layui-btn layui-btn-normal layui-btn-small" lay-filter="testUnitConnect" id="test" value="测试连接" />
+            </div>
+            <div class="layui-inline" id="UnitdataBase" style="text-align: left; left: 50px; visibility: hidden">
+                <select name="UNIT_DB_NAME" id="UNIT_DB_NAME" lay-filter="UNIT_DB_NAME">
+                    <option></option>
+                </select>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label" id="unitMessage" style="width: auto;margin-left:30px"></label>@*text-align: left;*@
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['form'], function () {
+        var form = layui.form();
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/Project/GetForm", /*获取窗体的路径action*/
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                    $("#CDR_DB_NAME").append("<option value='" + data.CDR_DB_NAME + "'>" + data.CDR_DB_NAME + "</option>");
+                    $("#CDR_DB_NAME").find("option[value='" + data.CDR_DB_NAME + "']").attr("selected", true);
+                    $("#UNIT_DB_NAME").append("<option value='" + data.UNIT_DB_NAME + "'>" + data.UNIT_DB_NAME + "</option>");
+                    $("#UNIT_DB_NAME").find("option[value='" + data.UNIT_DB_NAME + "']").attr("selected", true);
+                    form.render('select');
+                    $("#CDRdataBase").css("visibility", "visible");
+                    $("#UnitdataBase").css("visibility", "visible");
+                }
+            });
+        }
+        form.render();
+        //提交
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/Project/Form",/*获取窗体的路径 action*/
+                data: data.field
+            });
+            return false;
+        });
+        //测试连接
+        form.on('submit(testCDRConnect)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/Project/TestCDRConnect",/*获取窗体的路径 action*/
+                data: data.field,
+                close: false,
+                success: function (data) {
+                    if (data.state == 1) {
+                        var selectedvalue = $("#CDR_DB_NAME").get(0).selectedOptions[0].value;
+                        $("#CDR_DB_NAME").empty();
+                        for (var i = 0; i < data.data.length; i++) {
+                            $("#CDR_DB_NAME").append("<option value='" + data.data[i] + "'>" + data.data[i] + "</option>");
+                        }
+                        $("#CDR_DB_NAME").find("option[value='" + selectedvalue + "']").attr("selected", true);
+                        form.render('select');
+                        $("#CDRdataBase").css("visibility", "visible");
+                    }
+                }
+            });
+            return false;
+        });
+
+        //测试连接
+        form.on('submit(testUnitConnect)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/Project/TestUnitConnect",/*获取窗体的路径 action*/
+                data: data.field,//{ "SERVER_NAME": $("#UNIT_SERVER_NAME").val(), "DB_USER": $("#UNIT_DB_USER").val(), "DB_PWD": $("#UNIT_DB_PWD").val() },
+                close: false,
+                success: function (data) {
+                    if (data.state == 1) {
+                        var selectedvalue = $("#UNIT_DB_NAME").get(0).selectedOptions[0].value;
+                        $("#UNIT_DB_NAME").empty();
+                        for (var i = 0; i < data.data.length; i++) {
+                            $("#UNIT_DB_NAME").append("<option value='" + data.data[i] + "'>" + data.data[i] + "</option>");
+                        }
+                        $("#UNIT_DB_NAME").find("option[value='" + selectedvalue + "']").attr("selected", true);
+                        form.render('select');
+                        $("#UnitdataBase").css("visibility", "visible");
+                    }
+                }
+            });
+            return false;
+        });
+
+        form.on('select(UNIT_DB_NAME)', function (data) {
+            document.getElementById('unitMessage').innerHTML = "测试中。。。";
+            $.formSubmit({
+                url: "/TestCenterSystem/Project/JudgeAuthority"
+                , data: { "UNIT_SERVER_NAME": $("#UNIT_SERVER_NAME").val(), "UNIT_DB_USER": $("#UNIT_DB_USER").val(), "UNIT_DB_PWD": $("#UNIT_DB_PWD").val(), "UNIT_DB_NAME": data.value, "flag": "UNIT" }
+                , close: false
+                , showMsg: false
+                , async:true
+                , success: function (data) {
+                    if (data.Item1) {
+                        $.layerMsg(data.Item2, "success");
+                        document.getElementById('unitMessage').innerHTML = "";//data.Item2;
+                    }
+                    else {
+                        $.layerMsg(data.Item2, "error");
+                        //$("#unitMessage").text() = data.item2;
+                        document.getElementById('unitMessage').innerHTML = "";//data.Item2;
+                    }
+                }
+            });
+        });
+
+        form.on('select(CDR_DB_NAME)', function (data) {
+            document.getElementById('cdrMessage').innerHTML = "测试中。。。";
+            $.formSubmit({
+                url: "/TestCenterSystem/Project/JudgeAuthority"
+                , data: { "CDR_SERVER_NAME": $("#CDR_SERVER_NAME").val(), "CDR_DB_USER": $("#CDR_DB_USER").val(), "CDR_DB_PWD": $("#CDR_DB_PWD").val(), "CDR_DB_NAME": data.value, "flag": "CDR" }
+                , close: false
+                , showMsg: false
+                , async: true
+                , success: function (data) {
+                    if (data.Item1) {
+                        $.layerMsg(data.Item2, "success");
+                        //$("#cdrMessage").text() = data.Item2;
+                        document.getElementById('cdrMessage').innerHTML = "";//data.Item2;
+                    }
+                    else {
+                        $.layerMsg(data.Item2, "error");
+                        document.getElementById('cdrMessage').innerHTML = "";//data.Item2;
+                    }
+                }
+            });
+        });
+    });
+
+</script>

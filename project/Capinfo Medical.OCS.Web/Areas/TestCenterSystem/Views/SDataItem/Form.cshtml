@@ -1,0 +1,119 @@
+﻿@{
+    ViewBag.Title = "添加统计类数据项";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top:25px;margin-left:70px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:400px">
+            <label class="layui-form-label">数据项代码:</label>
+            <div class="layui-input-inline" style="width:260px">
+                <input type="hidden" name="SD_ID" />
+                <input type="hidden" name="SITEM_ID" />
+                <input type="hidden" name="VALID_FLAG"/>
+                <input type="hidden" name="TC_PROJ_ID"/>
+                <input type="text" name="SITEM_CODE" class="layui-input" @*lay-verify="code"*@ autocomplete="off" placeholder="自动生成数据项代码" disabled />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:400px">
+            <label class="layui-form-label">数据项名称:</label>
+            <div class="layui-input-inline" style="width: 260px">
+                <input type="text" name="SITEM_NAME" class="layui-input" lay-verify="name|required" placeholder="请输入数据项名称" />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:400px">
+            <label class="layui-form-label">数据项简称:</label>
+            <div class="layui-input-inline" style="width: 260px">
+                <input type="text" name="SITEM_ALIAS" class="layui-input" lay-verify="alias|required" autocomplete="off" placeholder="请输入数据项简称" />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:400px">
+            <label class="layui-form-label">查看明细:</label>
+            <div class="layui-input-block" style="margin-left: 100px">
+                <input type="radio" name="IS_VIEW_DTL" value="1" title="是&nbsp" />
+                <input type="radio" name="IS_VIEW_DTL" value="0" title="否&nbsp" checked />
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    var strEnumHtml = "";
+    var enumCount = 2;
+    layui.use(['form', 'layer', 'element'], function () {
+        var form = layui.form();
+
+        function isCN(str) { //判断是不是中文
+            var regexCh = /[u00-uff]/;
+            return !regexCh.test(str);
+        }
+
+        function getLength(value) {
+            var strlength = 0;
+            for (var i = 0; i < value.length; i++) {
+                if (isCN(value.charAt(i)) == true) {
+                    strlength = strlength + 2; //中文为2个字符
+                } else {
+                    strlength = strlength + 1; //英文一个字符
+                }
+            }
+            return strlength;
+        }
+        //自定义验证规则
+        form.verify({
+            code: function (value) {
+                if (value.length > 20) {
+                    return '数据项代码不能超过20个字符';
+                }
+                var regex = /^[a-zA-Z0-9_]{1,}$/;
+                var objExp = new RegExp(regex);
+                if (objExp.test(value) != true)
+                    return '数据项代码只能包含字母、数字和下划线';
+            },
+            name: function (value) {
+                var strlength = getLength(value);
+                if (strlength > 200) {
+                    return '数据项名称不能超过200个字符';
+                }
+            },
+            alias: function (value) {
+                var strlength = getLength(value);
+                if (strlength > 60) {
+                    return '数据项简称不能超过60个字符';
+                }
+            }
+        });
+        //监听提交
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/SDataItem/Form",
+                data: data.field
+            });
+            return false;
+        });
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/SDataItem/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+        form.render();
+    });
+</script>

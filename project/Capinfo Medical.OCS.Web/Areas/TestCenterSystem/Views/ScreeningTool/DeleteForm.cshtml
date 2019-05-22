@@ -1,0 +1,43 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item" id="tableoritem">
+        <div class="layui-input-block" style="margin-left:80px">
+            <input type="radio" name="IsTableOrItem" value="0" title="仅删除表" checked="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="radio" name="IsTableOrItem" value="1" title="删除本项">
+        </div>
+    </div>
+    <p style="color:red;margin-left:40px">提示：删除之后不可恢复，请谨慎操作！</p>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form();
+        var layer = layui.layer;
+        var primaryKey = $.getQueryString("primaryKeys");
+
+        var flag = true;//用来判断只进行一次操作
+        form.on('submit(add)', function (data) {
+            if (flag) {
+                flag = false;
+                $.formSubmit({
+                    url: "/TestCenterSystem/ScreeningTool/DeleteTableOrItem?primaryKey=" + primaryKey,
+                    data: {
+                        IsTableOrItem: $('input[name="IsTableOrItem"]:checked').val(),
+                    },
+                });
+            }
+            return false;
+        });
+    });
+
+</script>

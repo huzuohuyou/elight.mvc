@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Progress";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<form id="form" class="layui-form" style="margin-top: 25px">
+    <div class="layui-form-item">
+        <label class="layui-form-label">执行进度</label>
+    </div>
+    <div class="layui-progress layui-progress-big" lay-showpercent="true" lay-filter="ingroup_progress" style="left:5%;top:-15px;width:90%">
+        <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+    </div>
+
+    <div class="layui-form-item" style="height:250px">
+        <div id="ingroup_note" class="panel-actions" style="left:5%;width:90%; height:250px;">异常事件区间：</div>@*left:20%;top:130px;overflow-y:auto; overflow-x:auto;*@
+    </div>
+</form>
+<script src="~/Content/layui2.0/layui.js"></script>
+@*<script src="~/Content/layui/layui.js"></script>*@
+
+<script src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/pace/pace.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+@*<script src="~/Scripts/jquery.signalR-2.2.2.js"></script>*@
+<script src="~/signalr/hubs"></script>
+<script>
+    initKey();
+    function initKey() {
+        if ($.cookie('ingroup_client_key') == null) {
+            var ingroup_client_key = guid();
+            $.cookie('ingroup_client_key', ingroup_client_key, { expires: 999, path: '/' });
+        }
+    }
+
+    layui.use(['layer', 'element'], function () {
+        // var form = layui.form;
+        var layer = layui.layer;
+        var element = layui.element;
+
+        $(function () {
+            var chat = $.connection.processHub;
+            chat.client.addNewMessageToPage = function (name, percent, title, note, executeList) {
+                var ingroup_client_key = $.cookie("ingroup_client_key")
+                if (name == ingroup_client_key) {
+                    //$("#ingroup_name").text(title);
+                    $("#ingroup_note").append("<p>" + note + "</p>");
+                    element.progress('ingroup_progress', percent + '%');
+
+                    //$("#ingroup_progress")
+                    //    .circleChart({
+                    //        value: percent
+                    //    });
+                    if (percent == 100) {
+                        //当执行完成时，配置界面的执行按钮更新为“已执行”
+                        for (var i = 0; i < parent.length; i++) {
+                            if (parent[i].document.URL.indexOf("/TestCenterSystem/InGroup/Config2") > 0) {
+                                parent[i].initState();
+                                break;
+                            }
+                        }
+                        //当执行完成时，入组主界面的该条入组规则的状态更新为“已执行”
+                        for (var i = 0; i < parent.length; i++) {
+                            if (parent[i].document.URL.indexOf("/TestCenterSystem/InGroup/Index") > 0) {
+                                parent[i].initGrid();
+                                break;
+                            }
+                        }
+                    }
+                }
+            };
+            $.connection.hub.start().done(function () {
+            });
+        });
+    })
+
+</script>

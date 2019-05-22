@@ -1,0 +1,702 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>华据TMS</title>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width" />
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
+    <link rel="bookmark" type="image/ico" href="~/favicon.ico" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/index.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/pace/dataurl.css" rel="stylesheet" />
+
+    <style>
+        #wrap {
+            display: block;
+            bottom: 5px;
+            right: 0px !important;
+            width: 130px;
+            line-height: 30px;
+            position: fixed;
+            border: 1px solid #fff;
+            text-align: center;
+            color: #000;
+            z-index: 9999;
+            background: #fff;
+        }
+    </style>
+</head>
+<body class="animated fadeIn">
+    <div class="layui-layout layui-layout-admin">
+        <!-- 头部区域 start -->
+        <div class="layui-header">
+            <div class="layui-header-title">
+                <span style="left: 5px;">
+                    <a class="layui-header-name">@ViewBag.SoftwareName</a>
+                    <a class="layui-header-sidebar" title="收缩菜单"><i class="fa fa-dedent" aria-hidden="true"></i></a>
+                </span>
+            </div>
+            <ul class="layui-nav">
+                <li class="layui-nav-item" style="margin-right: 65px">
+                    <a id="currentSd" class="layui-header-user" style="width: 300px; text-align: right;">项目名称--病种名称</a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a class="switch-items"><i class="layui-icon" aria-hidden="true">&#xe614;</i>&nbsp;切换</a>
+                            @*<a href="/TestCenterSystem/Project/Switch"><i class="layui-icon" aria-hidden="true">&#xe614;</i>&nbsp;切换</a>*@
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+            <ul class="layui-nav">
+                <li class="layui-nav-item" style="margin-right: 10px">
+                    <a class="layui-header-user"><i class="fa fa-user" aria-hidden="true"></i>&nbsp;</a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a class="user-card"><i class="fa fa-edit" aria-hidden="true"></i>&nbsp;账户管理</a>
+                        </dd>
+                        <dd style="display: none">
+                            <a class="btn-system-manage"><i class="fa fa-gear" aria-hidden="true"></i>&nbsp;系统设置</a>
+                        </dd>
+                        <dd style="display: none">
+                            <a class="lock-user"><i class="fa fa-power-off" aria-hidden="true"></i>&nbsp;锁定屏幕</a>
+                        </dd>
+                        <dd>
+                            <hr />
+                            <a href="/Account/Exit"><i class="fa fa-sign-out" aria-hidden="true"></i>&nbsp;安全退出</a>
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+        <!-- 头部区域 end -->
+        <!-- 左侧导航区域 start -->
+        <div class="layui-side layui-bg-black layui-navbar animated fadeIn">
+            <div class="layui-side-scroll" lay-filter="side">
+            </div>
+        </div>
+        <!-- 左侧导航区域 end -->
+        <!-- 内容主体区域 start -->
+        <div class="layui-body">
+            <div class="layui-tab-rollleft">
+                <i class="fa fa-backward"></i>
+            </div>
+            <div class="layui-tab-rollright">
+                <i class="fa fa-forward"></i>
+            </div>
+            <div class="layui-tab-fullscreen">
+                <i class="fa fa-arrows-alt"></i>
+            </div>
+            <div class="layui-tab layui-tab-brief" lay-filter="tab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this" lay-id="0">
+                        <cite>系统首页</cite>
+                    </li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <iframe src="/Home/Default" style="height: 560px"></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-layer layui-layer-page layui-box" id="layui-layer0" type="page" times="1" showtime="0" contype="string"
+                 style="z-index: 9999;width:25%; height: 70%; top: 40%; left: 75%; background-color: rgb(255, 255, 255); display: none;">
+                <div class="layui-layer-title" style="cursor: pointer;width:90%;height:35px">
+                    <div class="layui-form-label" style="cursor: pointer; padding-left: 0px;width: 30px">执行信息</div>
+                    <div class="layui-form-label" style="float: right; padding-right: 0px; cursor: pointer;width: 10px" onclick="closeLayer()">X</div>
+                </div>
+                <div id="layui-layim" class="layui-layer-content">
+                    <div class="layui-layim-main" style="background-color: #ffffff">
+                        <div class="layui-tab layui-tab-brief" lay-filter="itemtab">
+                            <ul class="layui-tab-title" style="width:260px">
+                                <li>入组</li>
+                                <li class="layui-this">数据项</li>
+                                <li>指标</li>
+                            </ul>
+                            <div class="layui-tab-content" style="background-color: #ffffff; height: 310px;">
+                                <div id="ingroup" class="layui-tab-item">
+                                    <div class="layui-input-block" style="margin-left: 10px; margin-right: 10px;">
+                                        <textarea class="layui-textarea" id="ingroup_exeList" name="ingroup_exeList" style="white-space: nowrap;height: 310px"></textarea>
+                                    </div>
+                                </div>
+                                <div id="dataitem" class="layui-tab-item  layui-show">
+                                    <div class="layui-input-block" style="margin-left: 10px; margin-right: 10px;">
+                                        <textarea class="layui-textarea" id="dataitem_exeList" name="dataitem_exeList" style="white-space: nowrap;height: 310px"></textarea>
+                                    </div>
+                                </div>
+                                <div id="kpi" class="layui-tab-item">
+                                    <div class="layui-input-block" style="margin-left: 10px; margin-right: 10px;">
+                                        <textarea class="layui-textarea" id="kpi_exeList" name="kpi_exeList" style="height: 310px;white-space: nowrap;overflow-y: auto;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="wrap" class="layui-layer-content" style="height: 35px; cursor: pointer;display: block;" onclick="showLayer()">
+                <img src="~/Content/images/message1.jpg" style="cursor: pointer;margin-top:2px;width: 40px; height: 35px;">
+                <span>执行信息</span>
+            </div>
+        </div>
+        <!-- 内容主体区域 end -->
+        <!-- 锁屏模板 start -->
+        <script type="text/template" class="layui-lock-tpl">
+            <div class="layui-lock-box" id="lock-box">
+                <div class="layui-lock-img">
+                    <img id="lockHeadIcon" src="@ViewBag.Avatar" />
+                </div>
+                <div id="lockUserName" class="layui-lock-name">@ViewBag.Account</div>
+                <input id="lockPassword" type="text" class="layui-lock-input" value="输入密码解锁.." />
+                <button class="layui-btn layui-btn-small" id="btnUnlock">解锁</button>
+            </div>
+        </script>
+        <!-- 锁屏模板 end -->
+    </div>
+
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/layui/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/pace/pace.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+<script src="~/signalr/hubs"></script>
+<script type="text/javascript">
+    initKey();
+    function initKey() {
+        if ($.cookie('ingroup_client_key') == null) {
+            var ingroup_client_key = guid();
+            $.cookie('ingroup_client_key', ingroup_client_key, { expires: 999, path: '/' });
+        }
+        if ($.cookie('kpi_client_key') == null) {
+            var kpi_client_key = guid();
+            $.cookie('kpi_client_key', kpi_client_key, { expires: 999, path: '/' });
+        }
+        if ($.cookie('dataitem_client_key') == null) {
+            var dataitem_client_key = guid();
+            $.cookie('dataitem_client_key', dataitem_client_key, { expires: 999, path: '/' });
+        }
+        if ($.cookie('sdataitem_client_key') == null) {
+            var sdataitem_client_key = guid();
+            $.cookie('sdataitem_client_key', sdataitem_client_key, { expires: 999, path: '/' });
+        }
+        //console.log('kpi_client_key:' + $.cookie('kpi_client_key'));
+        //console.log('dataitem_client_key:' + $.cookie('dataitem_client_key'));
+        //console.log('sdataitem_client_key:' + $.cookie('sdataitem_client_key'));
+
+    }
+
+    function guid() {
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+
+    var tab;
+    var layer;
+    var navbar;
+    var flag;//病种类型
+    var client = { permission: [] };
+    var _baseUrl = '/content/framework/js/';
+    var lay_modules_url = '/content/framework/js/';
+
+    layui.config({ base: lay_modules_url });
+
+    layui.use(['element', 'layer', 'navbar', 'tab', 'donate'], function () {
+        var element = layui.element();
+        navbar = layui.navbar();
+
+        layer = layui.layer;
+        tab = layui.tab({
+            elem: '.layui-tab:first',
+            maxSetting: { max: 15 }
+        });
+
+        layui.donate({
+            elem: '.btn-donate',
+            alipay_url: 'http://cdn.codergao.cn/image/aliyun.png',
+            wechat_url: 'http://cdn.codergao.cn/image/wchat.png'
+        });
+
+        $(window).on('resize', function () {
+            var $content = $('.layui-tab .layui-tab-content');
+            $content.height($(this).height() - 95);
+            $content.find('iframe').each(function () {
+                $(this).height($content.height());
+            });
+        }).resize();
+
+        //初始化
+        (
+            function initSD() {
+                $.ajax({
+                    url: "/TestCenterSystem/SD/CurrentSD",
+                    data: {},
+                    type: "post",
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        if (data.Item1 == "-") {
+                            switchSD(element);
+                        } else {
+                            $("#currentSd").text(data.Item1);
+                            initLeftMenu(data.Item2);
+                        }
+                    }
+                });
+            }
+    )();
+
+        //加载用户权限。
+        $.ajax({
+            url: "/Home/GetPermission",
+            type: "post",
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                if (data && data.length > 0) {
+                    client.permission = data;
+                }
+            }
+        });
+
+        //收缩菜单栏。
+        $('.layui-header-sidebar').click(function () {
+            if ($('.layui-side').width() === 200) {
+                $('.layui-side').removeClass('layui-navbar').addClass('layui-navbar-min');
+                $('.layui-body').css('left', '60px');
+                $('.layui-side').find('.beg-navbar').find('a').each(function () {
+                    var tipIndex;
+                    $(this).mouseenter(function () {
+                        tipIndex = layer.tips($(this).find('cite').text(), this, { tips: [2, '#393D49'] });
+                    });
+                    $(this).mouseleave(function () {
+                        layer.close(tipIndex);
+                    });
+                });
+                $(this).children('i').removeClass('fa fa-dedent').addClass('fa fa-indent');
+            } else {
+                $('.layui-side').removeClass('layui-navbar-min').addClass('layui-navbar');
+                $('.layui-body').css('left', '200px');
+                $('.layui-side').find('.beg-navbar').find('a').each(function () {
+                    $(this).unbind('mouseenter');
+                    $(this).unbind('mouseleave');
+                });
+                $(this).children('i').removeClass('fa fa-indent').addClass('fa fa-dedent');
+            }
+        });
+
+        //全屏。
+        $('.layui-tab-fullscreen').click(function () {
+            var $that = $(this);
+            if ($that.children('i').hasClass('fa-arrows-alt')) {
+                var de = document.documentElement;
+                if (de.requestFullscreen) {
+                    de.requestFullscreen();
+                } else if (de.mozRequestFullScreen) {
+                    de.mozRequestFullScreen();
+                } else if (de.webkitRequestFullScreen) {
+                    de.webkitRequestFullScreen();
+                }
+                $that.children('i').removeClass('fa-arrows-alt').addClass('fa-arrows');
+            } else {
+                var de = document;
+                if (de.exitFullscreen) {
+                    de.exitFullscreen();
+                } else if (de.mozCancelFullScreen) {
+                    de.mozCancelFullScreen();
+                } else if (de.webkitCancelFullScreen) {
+                    de.webkitCancelFullScreen();
+                }
+                $that.children('i').removeClass('fa-arrows').addClass('fa-arrows-alt');
+            }
+
+        });
+
+        var _calSumWidth = function (element) {
+            var width = 0;
+            $(element).each(function () {
+                width += $(this).outerWidth(true);
+            });
+            return width;
+        }
+
+        //Tab页左偏移。
+        $('.layui-tab-rollleft').click(function () {
+            var marginLeftVal = parseInt($('.layui-tab-title').children('li:first').css('margin-left'));
+            var visibleWidth = $('.layui-tab-title').outerWidth(true);
+
+            var scrollVal = 0;
+            var tabContentSumWidth = 0;
+            $('.layui-tab-title').children().each(function () {
+                tabContentSumWidth += $(this).outerWidth(true);
+            });
+
+            if (tabContentSumWidth < visibleWidth) {
+                return false;
+            } else {
+                var tabElement = $('.layui-tab-title').children('li:first');
+
+                var offsetVal = 0;
+                while ((offsetVal + $(tabElement).outerWidth(true)) <= marginLeftVal) {
+                    offsetVal += $(tabElement).outerWidth(true);
+                    tabElement = $(tabElement).next();
+                }
+
+                offsetVal = 0;
+                if (_calSumWidth($(tabElement).prevAll()) > visibleWidth) {
+                    while ((offsetVal + $(tabElement).outerWidth(true)) < (visibleWidth) && tabElement.length > 0) {
+                        offsetVal += $(tabElement).outerWidth(true);
+                        tabElement = $(tabElement).prev();
+                    }
+                    scrollVal = _calSumWidth($(tabElement).prevAll());
+                }
+            }
+            $('.layui-tab-title').animate({
+                marginLeft: 40 - scrollVal + 'px'
+            }, "fast");
+
+        });
+
+        //Tab页右偏移。
+        $('.layui-tab-rollright').click(function () {
+            var marginLeftVal = parseInt($('.layui-tab-title').children('li:first').css('margin-left'));
+            var visibleWidth = $('.layui-tab-title').outerWidth(true);
+
+            var scrollVal = 0;
+            var tabContentSumWidth = 0;
+            $('.layui-tab-title').children().each(function () {
+                tabContentSumWidth += $(this).outerWidth(true);
+            });
+
+            if (tabContentSumWidth <= visibleWidth) {
+                return false;
+            } else {
+                var tabElement = $('.layui-tab-title').children('li:first');
+
+                var offsetVal = 0;
+                while ((offsetVal + $(tabElement).outerWidth(true)) <= marginLeftVal) {
+                    offsetVal += $(tabElement).outerWidth(true);
+                    tabElement = $(tabElement).next();
+                }
+
+                offsetVal = 0;
+                while ((offsetVal + $(tabElement).outerWidth(true)) < (visibleWidth) && tabElement.length > 0) {
+                    offsetVal += $(tabElement).outerWidth(true);
+                    tabElement = $(tabElement).next();
+                }
+
+
+                scrollVal = _calSumWidth($(tabElement).prevAll());
+                if (scrollVal > 0) {
+                    $('.layui-tab-title').animate({
+                        marginLeft: 40 - scrollVal + 'px'
+                    }, "fast");
+                }
+            }
+
+        });
+
+        $('.layui-nav .user-card').click(function () {
+            tab.tabAdd({
+                title: '账户管理',
+                href: '/Account/InfoCard'
+            });
+        });
+
+        //锁屏。
+        $('.layui-nav .lock-user').click(function () {
+            layer.open({
+                title: false,
+                type: 1,
+                closeBtn: 0,
+                anim: 6,
+                content: $('.layui-lock-tpl').html(),
+                shade: [0.9, '#393D49'],
+                success: function (layero, lockIndex) {
+                    isShowLock = true;
+                    layero.find('#lockPassword').on('focus', function () {
+                        var $this = $(this);
+                        if ($this.val() === '输入密码解锁..') {
+                            $this.val('').attr('type', 'password');
+                        }
+                    }).on('blur', function () {
+                        var $this = $(this);
+                        if ($this.val() === '' || $this.length === 0) {
+                            $this.attr('type', 'text').val('输入密码解锁..');
+                        }
+                    });
+                    //防止浏览器被刷新，删除服务器登陆用户相关身份认证。
+                    $.ajax({
+                        url: "/Account/Lock",
+                        type: "post",
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                            if (data) {
+                                console.log("已清除用户认证信息，需要重新认证。");
+                            }
+                        }
+                    });
+                    //解锁方法。
+                    var _unlock = function (username, password) {
+                        $.post('/Account/Unlock', { username: username, password: $.md5(password) }, function (data) {
+                            if (data.state == 1) {
+                                layer.close(lockIndex);
+                            } else {
+                                layer.tips(data.message, '#lockPassword', {
+                                    tips: [1, '#000'],
+                                    time: 2000
+                                });
+                            }
+                        }, 'json');
+                    }
+                    //注册解锁按钮点击事件。
+                    layero.find('#btnUnlock').on('click', function () {
+                        var username = layero.find('#lockUserName').text();
+                        var password = layero.find('#lockPassword').val();
+                        if (password === '输入密码解锁..' || password.length === 0) {
+                            layer.tips('请输入密码！', '#lockPassword', {
+                                tips: [1, '#000'],
+                                time: 1000
+                            });
+                            return;
+                        }
+                        _unlock(username, password);
+                    });
+                    $('#lockPassword').bindEnterEvent(layero.find('#btnUnlock'));
+                }
+            });
+        });
+
+        //切换
+        $('.layui-nav .switch-items').click(function () {
+            switchSD(element);
+        });
+
+        //触发事件
+        $(function () {
+            var chat = $.connection.processHub;
+            chat.client.addNewMessageToPage = function (name, percent, title, note, executeList) {
+                var kpi_client_key = $.cookie("kpi_client_key");
+                var dataitem_client_key = $.cookie("dataitem_client_key");
+                var sdataitem_client_key = $.cookie("sdataitem_client_key");
+                var ingroup_client_key = $.cookie("ingroup_client_key");
+                //console.log('dataitem_client_key:' + $.cookie('dataitem_client_key') + "___name:" + name);
+                //console.log('sdataitem_client_key:' + $.cookie('sdataitem_client_key') + "___name:" + name);
+                //console.log('kpi_client_key:' + $.cookie('kpi_client_key') + "___name:" + name);
+                //console.log('ingroup_client_key:' + $.cookie('ingroup_client_key') + "___name:" + name);
+                var url = "", id = "", note1 = "", note2 = "";
+                if (name === kpi_client_key) {
+                    $("#kpi_exeList")[0].value = executeList;
+                    url = "/TestCenterSystem/KPI/Index2";
+                    id = "kpi-exe";
+                    var noteList = note.split('/');
+                    console.log(note)
+                    if (noteList.length == 2) {
+                        note1 = noteList[0].split('(');
+                        note2 = noteList[1].split(')');
+                    }
+                    if (note1[note1.length - 1] == note2[0] && (percent === '100%' || percent === '100')) {
+                        //刷新父窗体
+                        job_done(url, id);
+                    } else {
+                        job_doing(url, id);
+                    }
+                } else if (name === dataitem_client_key) {
+                    $("#dataitem_exeList")[0].value = executeList;//+ "\r\n" + $("#dataitem_exeList")[0].value;//.append("<p>" + note + "</p>");
+                    url = "/TestCenterSystem/DataItem/Index1";
+                    id = "dataItem-executeselect";
+                    var noteList = note.split('/');
+                    if (noteList.length == 2) {
+                        note1 = noteList[0].split('(');
+                        note2 = noteList[1].split(')');
+                    }
+                    if (note1[note1.length - 1] == note2[0] && (percent === '100%' || percent === '100')) {
+                        //刷新父窗体
+                        job_done(url, id);
+                    } else {
+                        job_doing(url, id);
+                    }
+                } else if (name === sdataitem_client_key) {
+                    $("#dataitem_exeList")[0].value = executeList;//+ "\r\n" + $("#dataitem_exeList")[0].value;//.append("<p>" + note + "</p>");
+                    url = "/TestCenterSystem/SDataItem/Index";
+                    id = "sdataItem-execute";
+                    var noteList = note.split('/');
+                    if (noteList.length == 2) {
+                        note1 = noteList[0].split('(');
+                        note2 = noteList[1].split(')');
+                    }
+                    if (note1[note1.length - 1] == note2[0] && (percent === '100%' || percent === '100')) {
+                        //刷新父窗体
+                        job_done(url, id);
+                    } else {
+                        job_doing(url, id);
+                    }
+                } else if (name === ingroup_client_key) {
+                    $("#ingroup_exeList")[0].value = executeList;// + "\r\n" + $("#ingroup_exeList")[0].value;//.append("<p>" + note + "</p>");
+                    url = "/TestCenterSystem/InGroup/Index2";
+                    //id = title;
+                    var noteList = note.split('/');
+                    if (noteList.length == 2) {
+                        note1 = noteList[0].split('(');
+                        note2 = noteList[1].split(')');
+                    }
+                    if (note1[note1.length - 1] == note2[0] && (percent === '100%' || percent === '100')) {
+                        //刷新父窗体
+                        job_done(url, id);
+                    } else {
+                        job_doing(url, id);
+                    }
+                }
+            };
+            $.connection.hub.start().done(function () {
+            });
+        });
+    });
+    function switchSD(element) {
+        $.layerOpen({
+            id: "switch",
+            title: "切换病种",
+            width: "870px",
+            height: "600px",
+            content: "/TestCenterSystem/SD/Switch",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                refreshSD();
+            },
+            //cancel: function (iBody) {
+            //    iBody.find('#btnSubmit1').click();
+            //    refreshSD();
+            //    return true;
+            //},
+
+        });
+        if ($("#currentSd")[0].innerText === "-" || $("#currentSd")[0].innerText === "项目名称--病种名称") {
+            refreshSD();
+        }
+        //refreshSD();
+        var layIds = $("[lay-id]");
+        $.each(layIds, function (index, value, array) {
+            var id = $(value).attr("lay-id");
+            if (id !== "0")
+                element.tabDelete('tab', id);
+        });
+    }
+    function refreshSD() {
+        $.ajax({
+            url: "/TestCenterSystem/SD/CurrentSD",
+            data: {},
+            type: "post",
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                $("#currentSd").text(data.Item1);
+                initLeftMenu(data.Item2);
+            }
+        });
+    }
+    function showLayer() {
+        $("#wrap").css({ "display": "none" });;
+        $("#layui-layer0").css({ "display": "block" });
+    }
+
+    function closeLayer() {
+        $("#wrap").css({ "display": "block" });
+        $("#layui-layer0").css({ "display": "none" });
+    }
+
+    //根据指定url刷新页面
+    function job_doing(url, id) {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf(url) > 0) {
+                if (!hasClass(parent[i].document.getElementById(id), "breathe-btn")) {
+                    addClass(parent[i].document.getElementById(id), "breathe-btn")
+                }
+                if (id === "dataItem-executeselect" || id === "sdataItem-execute")
+                    parent[i].isHasTask();
+                //parent[i].document.getElementById(id).innerHTML = '<i class="fa fa-check-square-o" aria-hidden="true"></i> 执行中';
+                break;
+            }
+        }
+    }
+
+    //根据指定url刷新页面
+    function job_done(url, id) {
+        $.layerMsg("执行完毕！", 1);
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf(url) > 0) {
+                if (url == "/TestCenterSystem/DataItem/Index1") {
+                    parent[i].isHasTask();
+                    parent[i].refreshGrid();//initGrid('SD_ITEM_ID', 'desc');
+                }
+                if (url == "/TestCenterSystem/SDataItem/Index") {
+                    parent[i].isHasTask();
+                    parent[i].refreshGrid();//.initGrid('SITEM_ID', 'desc');
+                }
+                if (url == "/TestCenterSystem/InGroup/Index2") {
+                    parent[i].initGrid();
+                }
+                if (url == "/TestCenterSystem/KPI/Index2") {
+                    parent[i].refreshGrid();
+                }
+                if (hasClass(parent[i].document.getElementById(id), "breathe-btn")) {
+                    removeClass(parent[i].document.getElementById(id), "breathe-btn")
+                }
+                //parent[i].document.getElementById(id).innerHTML = '<i class="fa fa-check-square-o" aria-hidden="true"></i> 执行';
+                break;
+            }
+        }
+    }
+
+    function addClass(obj, cls) {
+        //var obj_class = obj.className,//获取 class 内容.
+        //blank = (obj_class != '') ? ' ' : '';//判断获取到的 class 是否为空, 如果不为空在前面加个'空格'.
+        //added = obj_class + blank + cls;//组合原来的 class 和需要添加的 class.
+        //obj.className = added;//替换原来的 class.
+    }
+
+    function removeClass(obj, cls) {
+        var obj_class = ' ' + obj.className + ' ';//获取 class 内容, 并在首尾各加一个空格. ex) 'abc    bcd' -> ' abc    bcd '
+        obj_class = obj_class.replace(/(\s+)/gi, ' '),//将多余的空字符替换成一个空格. ex) ' abc    bcd ' -> ' abc bcd '
+        removed = obj_class.replace(' ' + cls + ' ', ' ');//在原来的 class 替换掉首尾加了空格的 class. ex) ' abc bcd ' -> 'bcd '
+        removed = removed.replace(/(^\s+)|(\s+$)/g, '');//去掉首尾空格. ex) 'bcd ' -> 'bcd'
+        obj.className = removed;//替换原来的 class.
+    }
+
+    function hasClass(obj, cls) {
+        //var obj_class = obj.className,//获取 class 内容.
+        //obj_class_lst = obj_class.split(/\s+/);//通过split空字符将cls转换成数组.
+        //x = 0;
+        //for (x in obj_class_lst) {
+        //    if (obj_class_lst[x] == cls) {//循环数组, 判断是否包含cls
+        //        return true;
+        //    }
+        //}
+        return false;
+    }
+
+    function initLeftMenu(flag) {
+        if (flag === null)
+            flag = 3;
+        navbar.set({
+            spreadOne: true,
+            elem: '.layui-side-scroll',
+            cached: false,
+            url: '/Home/GetLeftMenu?flag=' + flag
+        });
+        navbar.render();
+
+        navbar.on('click(side)', function (data) {
+            tab.tabAdd(data.field);
+        });
+    }
+</script>

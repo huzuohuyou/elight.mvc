@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "公共数据项详情";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+</head>
+<body>
+    <div class="panel-body">
+        <div style="margin-left:10px;">
+            <div>
+                <p style="font-size: 14px;">数据项名称：@ViewBag.ItemName</p>
+                <p style="font-size: 13px;">数据项代码：@ViewBag.ItemCode    数据项简称：@ViewBag.ItemOtherName    数据项类别：@ViewBag.ItemType</p>
+            </div>
+        </div>
+        <div class="layui-tab layui-tab-brief" lay-filter="itemtab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">依赖</li>
+                @*<li>样例</li>*@
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item  layui-show">
+                    <table id="gridList" class="layui-form layui-table table-hover elight-table" style="background-color: white;" lay-skin="line">
+                        <thead>
+                            <tr>
+                                <th>顺序号</th>
+                                <th>数据项代码</th>
+                                <th>数据项名称</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="content"></tbody>
+                    </table>
+                    <div id="paged" style="padding-left: 20px;"></div>
+                </div>
+                @*<div class="layui-tab-item">
+                    <table id="gridList1" class="layui-form layui-table table-hover elight-table" style="background-color:white;margin-left:10px" lay-skin="line">
+                        <thead>
+                            <tr>
+                                <th>入组样本ID</th>
+                                <th>入组样本时间</th>
+                                <th>患者ID</th>
+                                <th>数据项的值</th>
+                            </tr>
+                        </thead>
+                        <tbody id="content1"></tbody>
+                    </table>
+                    <div id="paged1" style="padding-left:20px;"></div>
+                </div>*@
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td hidden="hidden">{{item.SD_ITEM_ID}}</td>
+        <td>{{item.ORDER_NO}}</td>
+        <td>{{item.SD_ITEM_CODE}}</td>
+        <td>{{item.SD_ITEM_NAME}}</td>
+        <td>
+            <button class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small" onclick="btn_select(id)">逻辑描述</button>
+        </td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+@*<script id="contentTpl1" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>{{item.Account}}</td>
+        <td>{{item.RealName}}</td>
+        <td>{{item.DeptName}}</td>
+        <td>{{item.DeptName}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>*@
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['form', 'layer', 'element', 'paging'], function () {
+        var form = layui.form()
+        , layer = layui.layer
+        , element = layui.element();
+
+        paging = layui.paging();
+        initGrid();
+        initData();
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/CommonItem/ItemDetail",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+    });
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/CommonItem/ItemDetail',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+            },
+            checkbox: false,
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 5
+            },
+            success: function (result) {
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+            }
+        });
+    }
+    function initData() {
+        var primaryKey = $.getQueryString("primaryKey");
+        paging.init({
+            url: '/TestCenterSystem/CommonItem/ItemDetail?primaryKey',
+            elem: '#content1',
+            tempElem: '#contentTpl1',
+            params: {
+            },
+            checkbox: false,
+            pageConfig: {
+                elem: '#paged1',
+                pageSize: 5
+            },
+            success: function (result) {
+            }
+        });
+    }
+</script>

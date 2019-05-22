@@ -1,0 +1,186 @@
+﻿@{
+    ViewBag.Title = "公共依赖数据项添加依赖详情";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+</head>
+<body>
+    @*<div class="panel animated fadeIn">*@
+    <div class="panel-body">
+        <div id="toolbar" class="elight-table-toolbar">
+            <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                <i class="layui-icon">&#xe615;</i>
+            </button>
+            <div class="toolbar-search-input">
+                <input type="text" id="keyWord" placeholder="请输入数据项代码或名称" autocomplete="off" class="layui-input" style="width: 300px;">
+            </div>
+            <div class="toolbar-search-input">
+            </div>
+            <div class="toolbar-search-input layui-form layui-inline">
+                <label class="layui-form-label  layui-inline" style="top:-3px">数据项类别:</label>
+                <div class="layui-input-block">
+                    <select name="ItemType" lay-filter="ItemType">
+                        <option value="">请选择类别</option>
+                        <option value="all">全部信息</option>
+                        @{
+                            if (ViewBag.ItemType == null)
+                            {
+                            }
+                            else
+                            {
+                                var list = ViewBag.ItemType;
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+            </div>
+        </div>
+        <br />
+        <table id="gridList" class="layui-form layui-table table-hover elight-table" style="background-color:white;" lay-skin="line">
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" lay-skin="primary">
+                    </th>
+                    <th style="text-align: center">数据项代码</th>
+                    <th style="text-align: center">数据项名称</th>
+                    <th style="text-align: center">数据项类别</th>
+                    <th style="text-align: center">操作</th>
+                </tr>
+            </thead>
+            <tbody id="content"></tbody>
+        </table>
+        <div id="paged" style="padding-left:20px;"></div>
+        <div style="display: none">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+    @*</div>*@
+</body>
+</html>
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr onclick="btn_checked(this)">
+        <td>
+            <input id="selected" name="select" type="checkbox" lay-skin="primary" value="{{item.SD_ITEM_ID}}">
+        </td>
+        <td style="text-align: center">{{item.SD_ITEM_CODE}}</td>
+        <td style="text-align: center">{{item.SD_ITEM_NAME}}</td>
+        <td style="text-align: center">{{item.SD_ITEM_CAT_NAME}}</td>
+        <td style="text-align: center">
+            <button class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small" onclick="btn_select({{item.SD_ITEM_ID}},{{item.SD_ITEM_SRC}})">查看</button>
+        </td>
+        <td hidden>{{item.SD_ITEM_SRC}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    var primaryKey;
+    var itemList;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form', 'layer'], function () {
+        var layer = parent.layer || layui.layer;
+        var form = layui.form();
+        paging = layui.paging();
+        primaryKey = $.getQueryString("primaryKey");
+        initGrid();
+        //$("#toolbar").authorizeButton();
+        $('#btnSearch').click(initGrid);
+        $('#keyWord').bindEnterEvent(initGrid);
+
+        //监听提交
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/CustomItem/AddDepend?primaryKey=" + primaryKey + "&itemIdList=" + itemList.join(","),
+                type: "post"
+                //data: { itemIdList: itemList.join(",") }
+            });
+            return false;
+        });
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/CustomItem/GetItemList',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                primaryKey: primaryKey,
+                keyWord: $("select[name=ItemType]").get(0).value + ";" + $("#keyWord").val()
+            },
+            singleSelected: false,//设置单选或者多选
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 8
+            },
+            success: function () {
+
+            }
+        });
+    }
+
+    function btn_checked(tr) {
+        if (itemList == null)
+            itemList = new Array();
+        var field = tr.cells[0].children[0];
+        if (!field.checked)
+            itemList.push([field.value]);
+        else {
+            var list = itemList.concat();
+            itemList.splice(0, itemList.length);
+            for (var i = 0; i < list.length; i++) {
+                if (list[i][0] != field.value) {
+                    itemList.push([list[i][0]]);
+                }
+            }
+            list.splice(0, list.length);
+        }
+    }
+
+    function btn_select(id, src) {
+        //判断是自定义还是公共
+        if (src == 2) {
+            $.layerOpen({
+                id: "detail",
+                title: "数据项查看",
+                width: "680px",
+                height: "530px",
+                content: "/TestCenterSystem/CustomItem/Index?primaryKey=" + id,
+                btn: null
+            });
+        }
+        else {
+            $.layerOpen({
+                id: "detail",
+                title: "数据项配置",
+                width: "680px",
+                height: "530px",
+                content: "/TestCenterSystem/CommonItem/CommonManage?primaryKey=" + id,
+                btn: null
+            });
+        }
+    }
+</script>

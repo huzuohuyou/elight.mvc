@@ -1,0 +1,219 @@
+﻿@{
+//Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+
+
+<div id="progress" class="wrap position" style="margin-top: 0px; height: 300px">
+    <div id="progressdata"></div>
+</div>
+
+<script type="text/javascript">
+    //initProgress();
+    function initProgress() {
+        var projectId = $("#project")[0].value;
+        var sdId = $("#desease")[0].value;
+        $.ajax({
+            type: "GET",
+            //async: false,
+            url: "/TestCenterSystem/ProgressAndAnalysis/GetProjectDataItemProgess",//  V1.3  GetProjectProgess",
+            data: { "projectId": projectId, "sdId": sdId },
+            success: function (obj) {
+                if (obj != null || obj != "") {
+                    opt = {
+                        width: $('#progress')[0].width,
+                        height: 300
+                    }
+                    var chart = echarts.init($('#progressdata')[0], null, opt); //document.getElementById('ingroup')
+                    chart.setOption(getProgressOption(obj, true));
+                    layerCount += 1;
+                    layerClose(layerCount);
+                }
+            }
+        });
+    }
+
+    function getProgressOption(obj, isShowLegend) {
+        var states = isShowLegend === true ? obj[2].states : []; //V1.3  obj[1].states : [];
+        option = {
+            title: [{
+                text: '数据项',
+                bottom: '1%',
+                left: '52%'//'center'
+            }
+            /* V1.3
+                {
+                text: '入组',
+                bottom: '1%',
+                left: '23%'//'center'
+            },
+            {
+                text: '数据项',
+                bottom: '1%',
+                left: '52%'//'center'
+            },
+            {
+                text: '指标',
+                bottom: '1%',
+                left: '83%'//'center'
+            }
+            */
+            ],
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    mark: { show: true },
+                    dataView: {
+                        show: true,
+                        readOnly: true,//为false时界面上会显示刷新按钮
+                        optionToContent: function (opt) {
+                            var series = opt.series; //饼图数据
+                            var states = opt.legend[0].data;//图例
+                            var tdHeads = '<td  style="padding: 0 80px">状态</td>'; //表头
+                            var tdBodys = ''; //数据
+                            var lastRow = [0];//[0, 0, 0, 0];
+                            series.forEach(function (item) {
+                                //组装表头
+                                tdHeads += `<td style="padding: 0 80px">${item.name}</td>`;
+                            });
+                            //tdHeads += `<td style="padding: 0 80px">${"总量"}</td>`;
+                            var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                            for (var i = 0, l = states.length; i < l; i++) {//图例
+                                var num = 0;
+                                for (var j = 0; j < series.length; j++) {//入组;数据项;指标
+                                    var count = 0;
+                                    //组装表数据
+                                    for (var a = 0; a < series[j].data.length; a++) {
+                                        if (series[j].data[a].name == states[i]) {
+                                            count++;
+                                            tdBodys += `<td>${series[j].data[a].value}</td>`;
+                                            num = num + series[j].data[a].value;
+                                            lastRow[j] += series[j].data[a].value;//zlt
+                                            break;
+                                        }
+                                    }
+                                    if (count == 0) {
+                                        tdBodys += `<td>0</td>`;
+                                    }
+                                }
+                                //tdBodys += `<td>${num}</td>`;
+                                table += `<tr><td style="padding: 0 80px">${states[i]}</td>${tdBodys}</tr>`;
+                                tdBodys = '';
+                                //lastRow[3] += num;
+                            }
+
+                            for (var i = 0; i < lastRow.length; i++) {
+                                tdBodys += `<td>${lastRow[i]}</td>`;
+                            }
+                            table += `<tr><td style="padding: 0 80px">总量</td>${tdBodys}</tr>`;
+
+                            table += '</tbody></table>';
+                            return table;
+                        }
+                    },
+                    magicType: {
+                        show: true,
+                        type: ['pie', 'funnel']
+                    },
+                    restore: { show: false },
+                    saveAsImage: { show: true }
+                }
+            },
+            series: [
+                /* V1.3
+                {
+                    name: '入组',
+                    type: 'pie',
+                    center: ['25%', "50%"],
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '20',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data: obj[1].data// [//
+                },
+                */
+                {
+                    name: '数据项',
+                    type: 'pie',
+                    center: ['55%', "50%"],
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '20',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data: obj[2].data// [//
+                }
+                /* V1.3
+                ,
+                {
+                    name: '指标',
+                    type: 'pie',
+                    center: ['85%', "50%"],
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '20',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data: obj[3].data// [//
+                }
+                */
+            ],
+            legend: {
+                orient: 'vertical',//'horizontal',//
+                x: 'left',
+                //y: 'bottom',
+                data: states//['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']//
+            }
+        };
+        return option;
+    }
+</script>

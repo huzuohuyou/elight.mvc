@@ -1,0 +1,425 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>数据截取工具</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/cutword/css/cutword.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style>
+        .select {
+            color: #999;
+        }
+
+        .file {
+            width: 400px;
+            height: 25px;
+            margin-top: 5px;
+            float: right;
+            font-size: 13px;
+            color: rgb(66, 139, 202);
+        }
+
+        .blockquote {
+            margin-top: 10px;
+            padding: 6px;
+            border-left: 5px solid #1E9FFF;
+        }
+
+        .btn_column_span {
+            background-color: white;
+            border: 0px solid #2b92d4;
+            border-radius: 4px;
+            cursor: text;
+            outline: 0;
+        }
+
+        .btn_column_li {
+            background-color: #F2F2F2;
+            border: 1px solid #E6E6E6;
+            border-radius: 3px;
+            cursor: default;
+            float: left;
+            padding: 0 5px;
+        }
+
+        .btn_column_li_span {
+            color: #999;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: bold;
+            margin-right: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-primary layui-btn-small" id="DataBase" onclick="DataBase()">
+                    <i class="fa fa-database"></i> 数据库查询
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-small" id="DataImport">
+                    <i class="fa fa-cloud-upload"></i> 文件导入
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-small" id="Export" onclick="DataExport()">
+                    <i class="fa fa-sign-out"></i> 结果导出
+                </button>
+                <p id="filename" class="file"></p>
+                <p style="width: 95px; height: 25px; margin-left: 20px; margin-top: 5px; float: right; font-size: 13px;">当前文件名称：</p>
+            </div>
+            <blockquote class="layui-elem-quote blockquote">SQL语句</blockquote>
+            <div id="sqlArea" style="height: 130px; overflow: scroll;display: none">
+                <div class="layui-input-inline" style="width: 100%;">
+                    <textarea id="text_sql" lay-verify="required" placeholder="请输入查询语句" class="layui-textarea" style="min-height: 80px"></textarea>
+                </div>
+                <div style="margin-top: 5px; margin-bottom: 0px; margin-left: 10px;" id="btngroup">
+                    <button class="layui-btn layui-btn-primary layui-btn-small" style="width: 80px" id="btnOK" onclick="btn_select()">查询</button>
+                </div>
+            </div>
+            <blockquote class="layui-elem-quote blockquote">字段名称</blockquote>
+            <div id="btngroups" style="height:30px">
+                @*<span class="btn_column_span" id="col_REC_CONTENT">
+                        <ul style="color: #444; line-height: 28px;">
+                            <li class="btn_column_li">
+                                <span id="REC_CONTENT" onclick="btn_col(id)">REC_CONTENT</span>
+                                <span id="span_REC_CONTENT" class="btn_column_li_span" role="presentation" onclick="delete_col(id)">
+                                    &times;
+                                </span>
+                            </li>
+                        </ul>
+                    </span>*@
+            </div>
+            <blockquote class="layui-elem-quote blockquote">字段截取</blockquote>
+            <div id="cutArea" style="overflow: scroll">
+                @*<iframe src="~/Content/cutword/cutword.html" style="width: 605px;height: 605px;border: none"></iframe>*@
+            </div>
+            <blockquote class="layui-elem-quote blockquote">结果列表</blockquote>
+            <table class="layui-table" id="gridList" lay-filter="dtResultTool"></table>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script type="text/javascript">
+    var canvasArray = new Array('', '');
+    var tbResult;
+    var form;
+    var colArray = [];
+    //文件上传
+    layui.use(['form', 'upload', 'table', 'layer'],
+        function () {
+            var upload = layui.upload;
+            form = layui.form;
+            tbResult = layui.table;
+            //upload
+            upload.render({
+                elem: '#DataImport',
+                url: '/TestCenterSystem/DataCut/UploadFile',
+                accept: 'file',
+                exts: 'xlsx|xls|csv',
+                data: { id: 1 },
+                before: function (obj) {
+                    layer.load();
+                },
+                done: function (res) {
+                    if (res.code === 0) { //上传成功
+                        layer.closeAll('loading'); //关闭loading
+                        $('#uploadfile').find('p').html(res.filename + '<br>点击上传，或将文件拖拽到此处');
+                        $('#ltitle').html(res.filename);
+                        $('#filename').get(0).innerText = res.filename;//"当前文件名称：" +
+                        creatButton(res.cols);
+                        loadData(res.cols);
+                    } else {
+                        layer.closeAll('loading'); //关闭loading
+                        layer.msg('文件解析错误，请核对文件格式后重新上传');
+                    }
+                }
+            });
+        });
+    function DataExport() {
+        $.formSubmit({
+            url: "/TestCenterSystem/DataCut/ExportCutData?id=" + 1,
+            close: false,
+            showMsg: false,
+            success: function (data) {
+                if (data.data == null)
+                    $.layerMsg("未找到可导出的数据，无法导出！", 2);
+                else
+                    $.JSONToExcelConvertor(data.data, $('#filename').get(0).text + "_截取", data.title);
+            }
+        });
+    }
+    function DataBase() {
+        $("#sqlArea").css("display", "inherit");
+        $("#text_sql").focus();
+    }
+    function btn_select() {
+
+    }
+    //删除字段
+    function delete_col(id) {
+        var column = id.replace('span_', '');
+        //btn_deletecols(column);
+        $("#col_" + column).remove();
+    }
+    function loadData(colsnames) {
+        if (colsnames !== "") {
+            var cols = colsnames.split('|');
+            colArray = [];
+            for (var index = 0; index < cols.length; index++) {
+                colArray.push({ field: cols[index], title: cols[index], align: 'center', width: 150 });
+            }
+            tbResult.render({
+                id: 'grid',
+                elem: '#gridList',
+                url: '/TestCenterSystem/DataCut/GetFileData?id=' + 1,
+                height: 500,
+                page: true,
+                limits: [20, 30, 40, 50, 1000],
+                limit: $("[href]").val() === "" ? 20 : parseInt($("[href]").val()),
+                cols: [colArray],
+                done: function (res, curr, count) {
+                }
+            });
+        }
+    }
+    function creatButton(btnnames) {
+        var num = 9;
+        if (btnnames !== "") {
+            $("#btngroups").empty();
+            var cols = btnnames.split('|');
+            var groups = Math.ceil(cols.length / num);//除法向上取整
+            var divstr = "";
+            for (var i = 0; i < groups; i++) {
+                //divstr += "<div id='" + i + "'>" +
+                //    "<div id='coldiv" + i + "' class='layui-inline'>";
+                for (var index = 0; index < num; index++) {
+                    var j = i * num + index;
+                    if (cols.length <= j) break;
+                    //divstr += "<input id='" + cols[j] + "' type='button' class='layui-btn-mini layui-btn-primary' value='" + cols[j] +
+                    //    "'  onclick='btn_col(id)'/>";
+                    divstr += "<span class='btn_column_span' id='col_" + cols[j] + "'><ul style='color: #444; line-height: 28px;'><li class='btn_column_li'>" +
+                        "<span id='" + cols[j] + "' onclick='btn_col(id)'>" + cols[j] + "</span><span id='span_" + cols[j] + "' class='btn_column_li_span' role='presentation'" +
+                        " onclick='delete_col(id)'>&times;</span></li></ul></span>";
+                }
+                //divstr += "</div></div>";
+            }
+            $("#btngroups").append(divstr);
+        }
+    }
+    function btn_col(id) {
+        var content = id;
+        while (document.getElementById("txt_" + id) != null) {
+            id = id + "_1";
+        }
+
+        $("#cutArea").append(
+            "<input id='colSave" + id + "' class='layui-form-label' value='" + content + "' style='display:none'>" +
+            "<div  id='txt_" + id + "' class='layui-inline'>" +
+            "<fieldset class='layui-elem-field' style='height:230px'> <legend style='font-size:14px'>" + id + "</legend>" +
+            "<div class='layui-field-box'>" +
+            "<form id='form_" + id + "' class='layui-form' style='margin-bottom: 5px'>" +
+            "<div class='layui-form-item' style='height:25px;'>" +
+
+            "<div  class='layui-inline'>" +
+            "<label class='layui-form-label cutword-label'>" + "核心词：" + "</label>" +
+            "<div class='layui-input-inline' style='width:260px;'>" +
+            "<input id='core_" + id + "' class='layui-input' style='padding-top:0px;height:30px' type='text' lay-verify='core_" + id + "'/>" +
+            "</div>" +
+            "</div>" +
+
+            "</div>" +
+
+            "<div class='layui-form-item' style='height:25px;'>" +
+            "<div class='layui-inline'>" +
+            "<label class='layui-form-label cutword-label'>" + "前置词：" + "</label>" +
+            "<div class='layui-input-inline' style='width:260px;'>" +
+            "<input id='before_" + id + "' class='layui-input' style='padding-top:0px;height:30px' type='text' lay-verify='before_" + id + "'/>" +
+            "</div>" +
+
+            "<div class='layui-input-inline' style='width: 70px;padding-left: 2px'>" +
+            "<select name='before_type_" + id + "' class='cutword-select' style='display: inherit;'>" +
+            "<option value='string'>关键词</option><option value='length'>长度</option></select>" +
+            "</div>" +
+            "<div class='layui-input-inline' style='width: 70px;padding-left: 2px'>" +
+            "<select name='before_type_" + id + "' class='cutword-select' style='display: inherit;'>" +
+            "<option value=''>规则</option><option value='start'>至开头</option></select>" +
+            "</div>" +
+            "</div>" +
+
+            "</div>" +
+
+            "<div class='layui-form-item' style='height:25px;'>" +
+
+            "<div  class='layui-inline'>" +
+            "<label class='layui-form-label cutword-label'>" + "后置词：" + "</label>" +
+            "<div class='layui-input-inline' style='width:260px;'>" +
+            "<input id='after_" + id + "' class='layui-input' style='padding-top:0px;height:30px' type='text' lay-verify='after_" + id + "'/>" +
+            "</div>" +
+            "<div class='layui-input-inline'  style='width: 70px;padding-left: 2px'>" +
+            "<select name='after_type_" + id + "' class='cutword-select' style='display: inherit;'>" +
+            "<option value='string'>关键词</option><option value='length'>长度</option></select>" +
+            "</div>" +
+            "<div class='layui-input-inline' style='width: 70px;padding-left: 2px'>" +
+            "<select name='after_type_" + id + "' class='cutword-select' style='display: inherit;'>" +
+            "<option style='color:#999' value=''>规则</option><option value='end'>至结尾</option></select>" +
+            "</div>" +
+            "</div>" +
+
+            "</div>" +
+
+            "<div class='layui-form-item' style='height:25px;'>" +
+            "<div class='layui-inline'>" +
+            "<label class='layui-form-label cutword-label'>" + "结果名称：" + "</label>" +
+            "<div class='layui-input-inline' style='width:260px;'>" +
+            "<input id='resultName_" + id + "' class='layui-input' style='padding-top:0px;height:30px' type='text' value='" + id + "_Cut" + "' lay-verify='before_" + id + "'/>" +
+            "</div>" +
+            "</div>" +
+
+            "<div class='layui-form-item'  style='height:25px;margin-bottom:5px;margin-left:40px;'>" +
+            "<div class='layui-input-inline' style='width: 70px;margin-top:2px;'>" +
+            "<label style='font-size:13px;vertical-align:middle;'><input type='radio' name='num_" + id + "' id='num_" + id + "' style='display:inherit' value='single' title='单条' checked> 单 条</label>" +
+            "</div>" +
+            "<div class='layui-input-inline' style='width: 70px;margin-top:2px;'>" +
+            "<label style='font-size:13px;vertical-align:middle;'><input type='radio' name='num_" + id + "' id='num_" + id + "' style='display:inherit' value='more' title='多条'> 多 条</label>" +
+            "</div>" +
+            //"<div class='layui-input-inline' style='width: 70px;padding-left: 2px'>" +
+            //"<select name='num_" + id + "' style='display:inherit;height:23px;margin-top:2px;border:1px solid #e6e6e6;width:70px'>" +
+            //"<option value='single'>单条</option><option value='more'>多条</option></select>" +
+            //"</div>" +
+           "<input id='btn_cut_" + id + "' type='button'  style='width:60px;margin-top:2px;margin-left:20px' class='layui-btn-mini layui-btn-primary' value='截取'  onclick='btn_cutcols(id)'/>" +
+            "<input id='btn_delete_" + id + "' type='button' style='width:60px;margin-left:10px;margin-top:2px' class='layui-btn-mini layui-btn-primary' value='清除'  onclick='btn_deletecols(id)'/>" +
+            "</div>" +
+            "</form>" +
+            "</div>" +
+            "</fieldset>" +
+            "</div>"
+        );
+        //form.render('radio'); //更新全部
+        //form.render('select'); //更新全部
+    }
+    function refreshTable(data, resultName) {
+        colArray = [];
+        if (data.length > 0) {
+            var length = 0;
+            var index = 0;
+            for (var i = 0; i < data.length; i++) {
+                if (length < Object.keys(data[i]).length) {
+                    length = Object.keys(data[i]).length;
+                    index = i;
+                }
+            }
+            for (var obj in data[index]) {
+                if (obj !== 'LAY_TABLE_INDEX') {
+                    if (obj.indexOf(resultName) >= 0)
+                        colArray.unshift({ field: obj, title: obj, align: 'center', width: 150 });
+                    else
+                        colArray.push({ field: obj, title: obj, align: 'center', width: 150 });
+                }
+            }
+        }
+        tbResult.render({
+            id: 'grid',
+            elem: '#gridList',
+            method: 'post',
+            data: data,
+            cols: [colArray],
+            height: 500,
+            page: true,
+            limits: [20, 30, 40, 50, 1000],
+            limit: $("[href]").val() === "" ? 20 : parseInt($("[href]").val()),
+            done: function (res, curr, count) {
+                var colNames = colArray[0].field;
+                for (var index = 1; index < colArray.length; index++) {
+                    colNames += "|" + colArray[index].field;
+                }
+                creatButton(colNames);
+            }
+        });
+    }
+    function btn_cutcols(columnname) {
+        var id = columnname.replace('btn_cut_', '');
+        var coreword = $("#core_" + id).val();
+        var beforeword = $("#before_" + id).val();
+        var beforetype = $("select[name=before_type_" + id + "]").get(0).value;
+        var afterword = $("#after_" + id).val();
+        var aftertype = $("select[name=after_type_" + id + "]").get(0).value;
+        var resultName = $("#resultName_" + id).val();
+        var num = $("input:radio[name=num_" + id + "]:checked").get(0).value;//$('select[name=num_' + id + "]").get(0).value;//
+        var colSaveName = $("#colSave" + id).val();
+        var isExist = false;
+        var res = colArray.find(function (value) {
+            if (value.field === resultName) {
+                isExist = true;
+            }
+        });
+        if (!isExist)
+        colArray.unshift({ field: resultName, title: resultName, align: 'center', width: 150 });
+        tbResult.render({
+            id: 'grid',
+            elem: '#gridList',
+            method: 'post',
+            url: '/TestCenterSystem/DataCut/CutData?ColumnName=' + colSaveName + '&Id=' + 1 + '&CoreWord=' + coreword + '&BeforeWord=' + beforeword +
+                '&BeforeType=' + beforetype + '&AfterWord=' + afterword + '&AfterType=' + aftertype + '&NumType=' + num + '&ResultName=' + resultName,
+            height: 500,
+            limits: [20, 30, 40, 50, 1000],
+            limit: $("[href]").val() === "" ? 20 : parseInt($("[href]").val()),
+            cols: [colArray],
+            page: true,
+            done: function (res, curr, count) {
+                if (num === 'single') {
+                    var colNames = colArray[0].field;
+                    for (var index = 1; index < colArray.length; index++) {
+                        colNames += "|" + colArray[index].field;
+                    }
+                    creatButton(colNames);
+                } else {
+                    refreshTable(res.data, resultName);
+                }
+            }
+        });
+    }
+    function btn_deletecols(columnname) {
+        var id = columnname.replace('btn_delete_', '');
+        var resultName = $("#resultName_" + id).val();
+        var array = [];
+        var res = colArray.find(function (value) {
+            var reg = new RegExp(resultName + "+\\d+");;
+            if (!reg.test(value.field)) {//正则匹配返回结果：true/false
+                if (value.field !== resultName)
+                    array.push(value);
+            }
+        });
+        colArray = array;
+        tbResult.render({
+            id: 'grid',
+            elem: '#gridList',
+            method: 'post',
+            url: '/TestCenterSystem/DataCut/ClearCutData?columnname=' + id + '&id=' + 1,
+            height: 500,
+            limits: [20, 30, 40, 50, 1000],
+            page: true,
+            limit: $("[href]").val() === "" ? 20 : parseInt($("[href]").val()),
+            cols: [colArray],
+            done: function (res, curr, count) {
+                var colNames = colArray[0].field;
+                for (var index = 1; index < colArray.length; index++) {
+                    colNames += "|" + colArray[index].field;
+                }
+                creatButton(colNames);
+            }
+        });
+        $("#txt_" + id).remove();
+    }
+</script>

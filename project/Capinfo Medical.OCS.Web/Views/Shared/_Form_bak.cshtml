@@ -1,0 +1,206 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
+    <link rel="bookmark" type="image/ico" href="~/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    @*<link href="~/Content/layui/css/layui.css" rel="stylesheet" />*@
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/select2/css/select2.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    @*<script src="~/Content/layui/layui.js"></script>*@
+
+    <script src="~/Content/select2/js/select2.min.js"></script>
+    <script src="~/Content/framework/js/global.js?v=08"></script>
+    <script src="~/Content/jquery/jquery.cookie.js"></script>
+</head>
+<body>
+    @RenderBody()
+</body>
+</html>
+
+<!--
+<script type="text/html" id="state">
+    {{# if(d.STATE==1){ }} 进行中
+    {{# }else if(d.STATE==2){ }}已结束
+    {{# } }}
+</script>
+
+<script type="text/html" id="type">
+    {{# if(d.TC_PROJ_TYPE==1){ }} 质控
+    {{# }else if(d.TC_PROJ_TYPE==2){ }}科研
+    {{# } }}
+</script>
+
+<!--
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = "TC_PROJ_ID";//'TC_PROJ_ID';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        //$("#toolbar").authorizeButton();
+        //$('#btnSearch').click(btn_searchKeyWord);
+        //$('#CodeOrName').bindEnterEvent(btn_searchKeyWord);
+        initGrid();
+        table.on('sort(gridData)', function (obj) {
+            console.log("limit:" + $("[href]").val())
+            field = obj.field;
+            type = obj.type;
+            //initGrid();
+        });
+
+        //监听下拉列表
+        form.on('select(project)', function (data) {
+
+            refreshSD(data.value, $("#desease"));
+            //btn_searchKeyWord();
+            if (data.value === "all" || data.value === "" || data.value === "undefined") {
+                if (field === "SD_ID")
+                    field = "TC_PROJ_ID";
+                initGrid();
+            }
+            else {
+                if (field === "TC_PROJ_ID")
+                    field = "SD_ID";
+                initSDGrid();
+            }
+            
+        });
+        form.on('select(desease)', function (data) {
+            //btn_searchKeyWord();
+            initSDGrid();
+        });
+        //btn_searchKeyWord();
+    });
+
+    function initGrid() {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/SystemStatistics/GetList?field=' + field + '&type=' + type,
+            where: {
+                keyWord: $("#project").val() + ";" + $("#desease").val()
+            },//zlt
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'TC_PROJ_ID', style: 'display:none' },
+                { field: 'TC_PROJ_NAME', title: '项目', width: 200, align: 'left', sort: true, fixed: true },
+                { field: 'TC_PROJ_TYPE', title: '类型', width: 150, style: 'width:20%', toolbar: '#type', sort: true, align: 'left' },
+                { field: 'STATE', title: '状态', width: 150, style: 'width:20%', toolbar: '#state', sort: true, align: 'left' },
+                { field: 'DAYS', title: '用时（天）', width: 150, style: 'width:15%', sort: true, align: 'middle' },
+                { field: 'MEMBER_COUNT', title: '成员数量', width: 100, style: 'width:15%', align: 'middle' },
+                { field: 'UPD_DATE', title: '创建时间', width: 300, style: 'width:30%', sort: true, align: 'left' },
+                //{ fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                //btn_edit
+                currentPage = curr;
+                //totalCount = count;
+            }
+        });
+    }
+
+    function initSDGrid() {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/SystemStatistics/GetSDStatList?field=' + field + '&type=' + type,
+            where: {
+                keyWord: $("#project").val() + ";" + $("#desease").val()
+            },//zlt
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'SD_ID', style: 'display:none' },
+                { field: 'SD_NAME', title: '病种', width: 200, align: 'left', sort: true, fixed: true },
+                { field: 'INGROUP_COUNT', title: '入组数量', width: 100, style: 'width:10%', align: 'middle' },
+                { field: 'DATAITEM_COUNT', title: '数据项数量', width: 100, style: 'width:10%', align: 'middle' },
+                { field: 'KPI_COUNT', title: '指标数量', width: 100, style: 'width:10%', align: 'middle' },
+                { field: 'STATE', title: '状态', width: 120, style: 'width:10%', sort: true, toolbar: '#state', align: 'middle' },
+                { field: 'DAYS', title: '用时（天）', width: 120, style: 'width:10%', sort: true,align: 'middle' },
+                { field: 'MEMBER_COUNT', title: '成员数量', width: 120, style: 'width:10%', align: 'middle' },
+                { field: 'UPD_DATE', title: '创建时间', width: 200, style: 'width:20%', sort: true, align: 'left' },
+                //{ fixed: 'right', title: '操作', width: 200, align: 'center', toolbar: '#barDemoPeple' }
+            ]],
+            done: function (res, curr, count) {
+                //btn_editKW
+                currentPage = curr;
+                //totalCount = count;
+            }
+        });
+    }
+
+    //搜索关键词
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("#project").val() + ";" + $("#desease").val()
+            },
+            curr: 1
+        });
+    }
+
+    //刷新项目对应的病种
+    function refreshSD(proId, select) {
+        $.ajax({
+            url: "/TestCenterSystem/SystemStatistics/GetSDList",
+            data: { primaryKey: proId },
+            type: "post",
+            dataType: "json",
+            success: function (data) {
+                if (data.length > 0) {
+                    select.empty();
+                    //select.append("<option value=''>请选择病种</option>");
+                    select.append("<option value='all'>全部</option>");
+                    for (var index = 0; index < data.length; index++) {
+                        select.append("<option value='" +
+                            data[index].id +
+                            "'>" +
+                            data[index].text +
+                            "</option>");
+                    }
+                    //if (selectcode != "") {
+                    //    select.find("option[value='" + selectcode + "']").attr("selected", true); //根据值设置选中状态
+                    //}
+                } else {
+                    select.empty();
+                }
+                form.render('select');
+            }
+        });
+    }
+
+</script>
+
+ -->

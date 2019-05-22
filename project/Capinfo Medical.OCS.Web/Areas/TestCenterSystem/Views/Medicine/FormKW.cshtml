@@ -1,0 +1,189 @@
+﻿@{
+    ViewBag.Title = "FormKW";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">类别</label>
+            <div class="layui-input-inline">
+                <input type="hidden" name="TERM_KW_MAP_ID" />
+                <select lay-filter="selectType" id="selectType" name="TERM_CAT_CODE" lay-verify="required" style="width: 90%">
+                    <option value="">请选择类别</option>
+                    @{
+                        if (ViewBag.ItemType == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.ItemType;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].TERM_CAT_CODE">@list[i].TERM_CAT_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">一级类别</label>
+            <div class="layui-input-inline">
+                <select id="selectCat1" lay-filter="selectCat1" name="TERM_CAT1_CODE" lay-verify="required" style="width: 90%">
+                    <option value="">请选择一级类别</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">二级类别</label>
+            <div class="layui-input-inline">
+                <select id="selectCat2" lay-filter="selectCat2" name="TERM_CAT2_CODE" style="width: 90%">
+                    <option value="">请选择二级类别</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">三级类别</label>
+            <div class="layui-input-inline">
+                <select id="selectCat3" name="TERM_CAT3_CODE" style="width: 90%">
+                    <option value="">请选择三级类别</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">匹配关键词</label>
+            <div class="layui-input-block">
+                <input type="text" name="TERM_KW_NAME" lay-verify="required|name" placeholder="请输入匹配关键词" maxlength="60" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    var form;
+    layui.use(['form', 'layedit'],
+        function () {
+            form = layui.form();
+            var layedit = layui.layedit;
+            form.render();
+            form.on('select(selectType)',
+                function (data) {
+                    refreshTypeName(data.value, "", $("#selectCat1"), "一级", 1, "", "");
+                    $("#selectCat2").empty();
+                    $("#selectCat2").append("<option value=''>请选择二级名称</option>");
+                    $("#selectCat3").empty();
+                    $("#selectCat3").append("<option value=''>请选择三级名称</option>");
+                });
+            form.on('select(selectCat1)',
+                function (data) {
+                    refreshTypeName($("#selectType")[0].value, "", $("#selectCat2"), "二级", 2, $("#selectCat1")[0].value, "");
+                    $("#selectCat3").empty();
+                    $("#selectCat3").append("<option value=''>请选择三级名称</option>");
+                });
+            form.on('select(selectCat2)',
+                function (data) {
+                    refreshTypeName($("#selectType")[0].value, "", $("#selectCat3"), "三级", 3, $("#selectCat1")[0].value, $("#selectCat2")[0].value);
+                });
+            var primaryKeyKW = $.getQueryString("primaryKeyKW");
+            if (primaryKeyKW) {
+                $.ajax({
+                    url: "/TestCenterSystem/Medicine/GetFormKW",
+                    data: { primaryKeyKW: primaryKeyKW },
+                    type: "post",
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        var cs = data;
+                        console.log(cs);
+                        $("#form").formSerialize(data);
+                        refreshTypeName(data.TERM_CAT_CODE, data.TERM_CAT1_CODE, $("#selectCat1"), "一级", 1, "", "");
+                        if (data.TERM_CAT1_CODE != null)
+                            refreshTypeName(data.TERM_CAT_CODE, data.TERM_CAT2_CODE, $("#selectCat2"), "二级", 2, data.TERM_CAT1_CODE, "");
+                        if (data.TERM_CAT2_CODE != null)
+                            refreshTypeName(data.TERM_CAT_CODE, data.TERM_CAT3_CODE, $("#selectCat3"), "三级", 3, data.TERM_CAT1_CODE, data.TERM_CAT2_CODE);
+                        $("#selectType").find("option[value='" + data.TERM_CAT_CODE + "']")
+                            .attr("selected", true); //根据值设置选中状态
+                    }
+                });
+            };
+
+            form.render();
+
+            //自定义验证规则
+            form.verify({
+                name: function (value) {
+                    console.log(value);
+                    var strlength = getLength(value);
+                    if (strlength > 60) {
+                        return '关键字不能超过60个字符';
+                    }
+                }
+
+            });
+
+            function getLength(value) {
+                var strlength = 0;
+                for (var i = 0; i < value.length; i++) {
+                    if (isCN(value.charAt(i)) == true) {
+                        strlength = strlength + 2; //中文为2个字符
+                    } else {
+                        strlength = strlength + 1; //英文一个字符
+                    }
+                }
+                return strlength;
+            }
+
+            function isCN(str) { //判断是不是中文
+                var regexCh = /[u00-uff]/;
+                return !regexCh.test(str);
+            }
+
+            form.render();
+
+            form.on('submit(add)',
+                function (data) {
+                    console.log(data);
+                    $.formSubmit({
+                        url: "/TestCenterSystem/Medicine/FormKW",
+                        data: data.field
+                    });
+                    return false;
+                });
+        });
+    function refreshTypeName(datavalue, selectcode, select, typeName, catvalue, cat1, cat2) {
+        $.ajax({
+            url: "/TestCenterSystem/Medicine/GetTypeNameList",
+            data: { typeId: datavalue, termtype: 1, cattype: catvalue, catcode1: cat1, catcode2: cat2 },
+            type: "post",
+            dataType: "json",
+            success: function (data) {
+                if (data.length > 0) {
+                    select.empty();
+                    select.append("<option value=''>请选择" + typeName + "类别</option>");
+                    for (var index = 0; index < data.length; index++) {
+                        select.append("<option value='" +
+                            data[index].TERM_CAT_CODE +
+                            "'>" +
+                            data[index].TERM_CAT_NAME +
+                            "</option>");
+                    }
+                    if (selectcode != "") {
+                        select.find("option[value='" + selectcode + "']").attr("selected", true); //根据值设置选中状态
+                    }
+                } else {
+
+                }
+                form.render('select');
+            }
+        });
+    }
+</script>

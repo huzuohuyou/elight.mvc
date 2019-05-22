@@ -1,0 +1,254 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item" style="width: 98%;padding-left: 30px">
+        <div class="layui-inline" style="width: 100%">
+            <label class="layui-form-label">药物类别</label>
+            <div class="layui-input-inline" style="width: 74%">
+                <div class="layui-inline">
+                    <input type="hidden" name="TERM_CAT_CONF_ID" />
+                    <select lay-filter="selectType" id="selectType" name="TERM_CAT_CODE" lay-verify="required">
+                        <option value="">请选择药物类别</option>
+                        @{
+                            if (ViewBag.ItemType == null)
+                            {
+                            }
+                            else
+                            {
+                                var list = ViewBag.ItemType;
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    <option value="@list[i].TERM_CAT_CODE">@list[i].TERM_CAT_NAME</option>
+                                }
+                            }
+                        }
+                    </select>
+                    <input id="catName" type="hidden" name="TERM_CAT_NAME" />
+                </div>
+                <div class="layui-inline">
+                    <input type="button" id="termtype-add" onclick="btn_addtype()" class="layui-btn layui-btn-primary layui-btn-small" value="新增药物类别" /> @*<i class="fa fa-plus-square-o" aria-hidden="true"></i>*@
+                </div>
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 100%">
+            <label class="layui-form-label">一级类别</label>
+            <div class="layui-input-inline" style="width: 74%">
+                <div class="layui-inline">
+                    <input id="catName1" type="hidden" name="TERM_CAT1_NAME" />
+                    <select lay-filter="selectCat1" id="selectCat1" name="TERM_CAT1_CODE" lay-verify="required">
+                        <option value="">请选择一级类别</option>
+                    </select>
+                </div>
+                <div class="layui-inline">
+                    <input type="button" id="cattype1-add" onclick="btn_addcat1()" class="layui-btn layui-btn-primary layui-btn-small" value="新增一级类别" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-inline" style="width:100%">
+            <label class="layui-form-label">二级类别</label>
+            <div class="layui-input-inline" style="width:74%">
+                <div class="layui-inline">
+                    <input id="catName2" type="hidden" name="TERM_CAT2_NAME" />
+                    <select lay-filter="selectCat2" id="selectCat2" name="TERM_CAT2_CODE">
+                        <option value="">请选择二级类别</option>
+                    </select>
+                </div>
+                <div class="layui-inline">
+                    <input type="button" id="cattype2-add" onclick="btn_addcat2()" class="layui-btn layui-btn-primary layui-btn-small" value="新增二级类别" />
+                </div>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">三级类别</label>
+            <div class="layui-input-block" style="width: 74%">
+                <input type="text" name="TERM_CAT3_NAME" lay-verify="name" maxlength="200" placeholder="请输入三级类别名称" autocomplete="off" class="layui-input">
+                <input type="hidden" name="TERM_CAT3_CODE" maxlength="200" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    var form;
+    var layer;
+    layui.use(['layer', 'form', 'layedit'],
+        function () {
+            form = layui.form();
+            layer = layui.layer || parent.layer;
+            form.render();
+            var primaryKeyCate = $.getQueryString("primaryKeyCate");
+            if (primaryKeyCate) {
+                console.log(primaryKeyCate);
+                $.ajax({
+                    url: "/TestCenterSystem/Medicine/GetFormCate",
+                    data: { primaryKeyCate: primaryKeyCate },
+                    type: "post",
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        $("#form").formSerialize(data);
+                        refreshTypeName(data.TERM_CAT_CODE, data.TERM_CAT1_CODE, $("#selectCat1"), "一级", 1, "", "");
+                        if (data.TERM_CAT1_CODE != null)
+                            refreshTypeName(data.TERM_CAT_CODE, data.TERM_CAT2_CODE, $("#selectCat2"), "二级", 2, data.TERM_CAT1_CODE, "");
+                        $("#selectCat3").value = data.TERM_CAT3_NAME;
+                        $("#selectType").find("option[value='" + data.TERM_CAT_CODE + "']").attr("selected", true); //根据值设置选中状态
+                    }
+                });
+            };
+
+            form.render();
+
+            form.on('select(selectType)',
+                function (data) {
+                    refreshTypeName(data.value, "", $("#selectCat1"), "一级", 1, "", "");
+                    for (var i = 0; i < data.elem.children.length; i++) {
+                        if (data.elem.children.item(i).value === data.value) {
+                            $("#catName")[0].value = data.elem.children.item(i).label;
+                            break;
+                        }
+                    }
+                    $("#selectCat2").empty();
+                    $("#selectCat2").append("<option value=''>请选择二级名称</option>");
+                    $("#selectCat3").empty();
+                    $("#selectCat3").append("<option value=''>请选择三级名称</option>");
+                });
+            form.on('select(selectCat1)',
+                function (data) {
+                    for (var i = 0; i < data.elem.children.length; i++) {
+                        if (data.elem.children.item(i).value === data.value) {
+                            $("#catName1")[0].value = data.elem.children.item(i).label;
+                            break;
+                        }
+                    }
+                    refreshTypeName($("#selectType")[0].value, "", $("#selectCat2"), "二级", 2, $("#selectCat1")[0].value, "");
+                    $("#selectCat3")[0].value = "";
+                });
+            form.on('select(selectCat2)',
+                function (data) {
+                    for (var i = 0; i < data.elem.children.length; i++) {
+                        if (data.elem.children.item(i).value === data.value) {
+                            $("#catName2")[0].value = data.elem.children.item(i).label;
+                            break;
+                        }
+                    }
+                });
+
+            //自定义验证规则
+            form.verify({
+                name: function (value) {
+                    var strlength = getLength(value);
+                    if (strlength > 60) {
+                        return '类别名称不能超过60个字符';
+                    }
+                }
+            });
+
+            function getLength(value) {
+                var strlength = 0;
+                for (var i = 0; i < value.length; i++) {
+                    if (isCN(value.charAt(i)) == true) {
+                        strlength = strlength + 2; //中文为2个字符
+                    } else {
+                        strlength = strlength + 1; //英文一个字符
+                    }
+                }
+                return strlength;
+            }
+
+            function isCN(str) { //判断是不是中文
+                var regexCh = /[u00-uff]/;
+                return !regexCh.test(str);
+            }
+            form.render();
+            form.on('submit(add)',
+                function (data) {
+                    console.log(data);
+                    $.formSubmit({
+                        url: "/TestCenterSystem/Medicine/FormCate",
+                        data: data.field,
+                        close: false,
+                        success: function (data) {
+                            if (data.state == 1) {
+                                $.layerClose();
+                            }
+                        }
+                    });
+                    return false;
+                });
+        });
+    //添加药物类别
+
+    function btn_addtype() {
+        add('药物', $("#selectType"), $("#catName"));
+    }
+
+    function btn_addcat1() {
+        add('一级', $("#selectCat1"), $("#catName1"));
+    }
+
+    function btn_addcat2() {
+        add('二级', $("#selectCat2"), $("#catName2"));
+    }
+    function add(typeName, select, cat) {
+        console.log(1);
+        layer.prompt({
+            title: "请输入" + typeName + "类别",
+            maxlength: 200
+        },
+            function (val, index) {
+                if (val.trim() === "") return;
+                layer.close(index);
+                var code = 'aaa';
+                var isExit = false;
+                for (var i = 0; i < select[0].options.length; i++) {
+                    if (select[0].options[i].textContent === val) {
+                        select.find("option[value='" + select[0].options[i].value + "']").attr("selected", true); //根据值设置选中状态
+                        isExit = true;
+                    }
+                }
+                if (!isExit) {
+                    select.append("<option value='" + code + "'>" + val + "</option>");
+                    select.find("option[value='" + code + "']")
+                        .attr("selected", true); //根据值设置选中状态
+                }
+                cat[0].value = val;
+                form.render('select');
+            });
+    }
+
+    function refreshTypeName(datavalue, selectcode, select, typeName, catvalue, cat1, cat2) {
+        $.ajax({
+            url: "/TestCenterSystem/Medicine/GetTypeNameList",
+            data: { typeId: datavalue, termtype: 1, cattype: catvalue, catcode1: cat1, catcode2: cat2 },
+            type: "post",
+            dataType: "json",
+            success: function (data) {
+                if (data.length > 0) {
+                    select.empty();
+                    select.append("<option value=''>请选择" + typeName + "类别</option>");
+                    for (var index = 0; index < data.length; index++) {
+                        select.append("<option value='" +
+                            data[index].TERM_CAT_CODE +
+                            "'>" +
+                            data[index].TERM_CAT_NAME +
+                            "</option>");
+                    }
+                    if (selectcode !== "") {
+                        select.find("option[value='" + selectcode + "']").attr("selected", true); //根据值设置选中状态
+                    }
+                } else {
+
+                }
+                form.render('select');
+            }
+        });
+    }
+
+</script>

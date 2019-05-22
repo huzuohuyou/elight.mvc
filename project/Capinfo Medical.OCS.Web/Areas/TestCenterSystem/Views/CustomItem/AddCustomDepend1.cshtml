@@ -1,0 +1,180 @@
+﻿@{
+    ViewBag.Title = "自定义依赖数据项添加映射";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+</head>
+<body>
+    <div class="panel-body">
+        <div id="toolbar" class="elight-table-toolbar">
+            <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                <i class="layui-icon">&#xe615;</i>
+            </button>
+            <div class="toolbar-search-input">
+                <input type="text" id="keyWord" placeholder="请输入代码或名称" autocomplete="off" class="layui-input" style="width: 150px;">
+            </div>
+            <div class="toolbar-search-input layui-form layui-inline">
+                <label class="layui-form-label  layui-inline" style="top: -3px">类别:</label>
+                <div class="layui-input-block" style="width: 130px">
+                    <select name="ItemType" lay-filter="ItemType">
+                        <option value="">请选择类别</option>
+                        <option value="all">全部信息</option>
+                        @{
+                            if (ViewBag.ItemType == null)
+                            {
+                            }
+                            else
+                            {
+                                var list = ViewBag.ItemType;
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            @*<div>
+                <p>已选：<label class="layui-form-label">count</label>个</p>
+            </div>*@
+        </div>
+        <br />
+        <table id="gridList" class="layui-table" lay-filter="gridData">
+            <thead>
+                <tr></tr>
+            </thead>
+        </table>
+        <div style="display: none">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</body>
+</html>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>
+</script>
+<script type="text/javascript">
+    var primaryKey;
+    var totalCount;
+    var table;
+    var currentPage;
+    var itemList = new Array();
+    layui.use(['table', 'form', 'layer'], function() {
+        table = layui.table;
+        var form = layui.form;
+        primaryKey = $.getQueryString("primaryKey");
+        initGrid(primaryKey);
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#keyWord').bindEnterEvent(btn_searchKeyWord);
+        table.on('tool(gridData)', function(obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                select(data.SD_ITEM_ID);
+            }
+        });
+
+        table.on('checkbox(gridData)', function (obj) {
+            if (itemList == null)
+                itemList = new Array();
+            if (obj.type === 'one') {
+                if (obj.checked)
+                    itemList.push(obj.data.SD_ITEM_ID);
+                else
+                    itemList.remove(obj.data.SD_ITEM_ID);
+            } else {
+                if (obj.checked) {
+                    for (var i = 0; i < obj.data.length; i++) {
+                        if (!itemList.contains(obj.data[i].SD_ITEM_ID))
+                            itemList.push(obj.data[i].SD_ITEM_ID);
+                    }
+                } else {
+                    for (var i = 0; i < obj.data.length; i++) {
+                        if (itemList.contains(obj.data[i].SD_ITEM_ID))
+                            itemList.remove(obj.data[i].SD_ITEM_ID);
+                    }
+                }
+            }
+        });
+        Array.prototype.remove = function (val) {
+            var index = this.indexOf(val);
+            if (index > -1) {
+                this.splice(index, 1);
+            }
+        };
+        Array.prototype.contains = function (needle) {
+            for (i in this) {
+                if (this[i] === needle) return true;
+            }
+            return false;
+        }
+        //监听提交
+        form.on('submit(add)', function(data) {
+            @*var num=@ViewBag.ItemCount;
+            if (itemList.length != num ) {
+                layer.msg("必须选够"+num+"个数据项才可添加",{icon:2});
+                return false;
+            }*@
+            var checkStatus = table.checkStatus('grid');
+            $.formSubmit({
+                url: "/TestCenterSystem/CustomItem/AddDepend?primaryKey=" + primaryKey + "&itemIdList=" + itemList.join(","),
+                type: "post"
+                //data: { itemIdList: itemList.join(",") }
+            });
+            return false;
+        });
+    });
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("select[name=ItemType]").get(0).value + ";" + $("#keyWord").val()
+            },
+            curr: 1
+        });
+    }
+    function initGrid(primaryKey) {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/CustomItem/GetItemList1?primaryKey=' + primaryKey,
+            page: true,
+            even: true,
+            height: 300,
+            curr: 1,
+            limits: [5, 10, 15, 20, 25, 30],
+            limit: 5,
+            cols: [[
+                { filed: 'SD_ITEM_ID', checkbox: true, fixed: true },
+                { field: 'SD_ITEM_CODE', title: '数据项代码', width: 130, align: 'center' },
+                { field: 'SD_ITEM_NAME', title: '数据项名称', width: 200, align: 'center' },
+                { field: 'SD_ITEM_CAT_NAME', title: '数据项类别', width: 150, align: 'center' },
+                { fixed: 'right', width: 75, title: '操作', align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+    function select(id) {
+        var no = totalCount + 1;
+        $.layerOpen({
+            id: "detail",
+            title: "查看数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Detail?ItemCount=" + no + "&primaryKey=" + id,
+            btn: null
+        });
+    }
+</script>

@@ -1,0 +1,458 @@
+﻿@{
+    ViewBag.Title = "数据项管理";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    @*<meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">*@
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group">
+                    @*<button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_dependset()"><i class="layui-icon">&#xe614;</i>依赖设置 </button>*@
+                    @*<button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_customset_add()"><i class="layui-icon">&#xe61f;</i>自定义添加</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_common_add()"><i class="layui-icon">&#xe61f;</i>公共添加</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_export()"><i class="layui-icon">&#xe609;</i>导出脚本</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_select()"><i class="layui-icon">&#xe60b;</i>查看 </button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_update()"><i class="layui-icon">&#xe642;</i>修改</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_manage()"><i class="layui-icon">&#xe620;</i>管理</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_delete()"><i class="layui-icon">&#xe640;</i>删除</button>*@
+                </div>
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="CodeOrName" placeholder="请输入代码或名称或执行人" autocomplete="off" class="layui-input" style="width: 170px;font-size: 13px">
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 250px;font-size: 13px">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 40px; right: -50px">类别:</label>
+                    <div class="layui-input-block" style="width: 120px;">
+                        <select name="ItemType" lay-filter="ItemType">
+                            <option value="">请选择类别</option>
+                            <option value="all">全部信息</option>
+                            @{
+                                if (ViewBag.ItemType == null)
+                                {
+                                }
+                                else
+                                {
+                                    var list = ViewBag.ItemType;
+                                    for (var i = 0; i < list.Count; i++)
+                                    {
+                                        <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 110px;font-size: 13px">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 40px; right: -50px">状态:</label>
+                    <div class="layui-input-block" style="width: 68px;">
+                        <select name="IsExecute" lay-filter="IsExecute">
+                            <option value="all">全部</option>
+                            <option value="1">未执行</option>
+                            <option value="2">已执行</option>
+                            <option value="3">已清空</option>
+                            <option value="4">已锁定</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 110px;font-size: 13px">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 60px; right: -30px">是否映射:</label>
+                    <div class="layui-input-block" style="width: 68px;">
+                        <select name="IsDepend" lay-filter="IsDepend">
+                            <option value="all">全部</option>
+                            <option value="0">未映射</option>
+                            <option value="1">已映射</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <table id="gridList" class="layui-form layui-table table-hover elight-table" style="background-color: white; margin-left: 0px" lay-skin="line">
+                <thead>
+                    <tr onclick="tr_click(this)" style="height: 30px">
+                        <th>
+                            @*<input type="checkbox" lay-skin="primary">*@
+                        </th>
+                        <th style="min-width: 100px; text-align: center">数据项代码</th>
+                        <th style="text-align: center">数据项名称</th>
+                        <th style="min-width: 100px; text-align: center">类别</th>
+                        <th style="min-width: 90px; text-align: center">有效标志</th>
+                        <th style="min-width: 90px; text-align: center">状态</th>
+                        <th style="min-width: 75px; text-align: center">来源</th>
+                        <th style="text-align: center">依赖数据项</th>
+                        <th style="text-align: center">结果数量</th>
+                        @*<th>最后执行人</th>
+                            <th>最后执行时间</th>*@
+                    </tr>
+                </thead>
+                <tbody id="content"></tbody>
+            </table>
+            <div class="blog-manage-page">
+                <div class="layui-input-inline">
+                    <div id="paged" style="padding-left: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{# layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input id="selected" type="checkbox" lay-skin="primary" value="{{item.SD_ITEM_ID}}">
+        </td>
+        <td style="text-align: center">{{item.SD_ITEM_CODE}}</td>
+        <td style="text-align: center">{{item.SD_ITEM_NAME}}</td>
+        <td style="text-align: center">{{item.SD_ITEM_CAT_NAME}} </td>
+        <td style="text-align: center">
+            @*有效标志*@
+            {{# if(item.VALID_FLAG==1){ }} <input id="mark" class="layui-form-checkbox" value="1" lay-filter="switchMark" type="checkbox" lay-skin="switch" checked>
+            {{# }else if(item.VALID_FLAG==0){ }} <input id="mark" value="0" class="layui-form-checkbox" lay-filter="switchMark" type="checkbox" lay-skin="switch">
+            {{# } }}
+        </td>
+        <td style="text-align: center">
+            @*是否已执行*@
+            {{# if(item.PROC_STAT_CODE==1){ }} 未执行@*|| item.PROC_STAT_CODE==3){<i class="layui-icon">&#x1006;</i>*@
+            {{# }else if(item.PROC_STAT_CODE==2){ }}已执行@*<i class="layui-icon">&#xe605;</i>*@
+            {{# }else if(item.PROC_STAT_CODE==3){ }}已清空
+            {{# }else if(item.PROC_STAT_CODE==4){ }}已锁定
+            {{# } }}@*else{*@
+        </td>
+        <td style="text-align: center">
+            {{# if(item.SD_ITEM_SRC==1){ }} 公共
+            {{# }else if(item.SD_ITEM_SRC==2){ }}自定义
+            {{# }else{ }}
+            {{# } }}
+        </td>
+        <td style="text-align: center">{{item.DEP_SD_ITEM_NAME}}</td>
+        <td style="text-align: center">{{item.ITEM_VALUE_COUNT}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    var count;
+    var tab;
+    var layer;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form', 'layer', 'element', 'tab'], function () {
+        element = layui.element();
+        layer = parent.layer || layui.layer;
+        var form = layui.form();
+        tab = layui.tab({
+            elem: '.layui-tab',
+            maxSetting: { max: 15 }
+        });
+        paging = layui.paging();
+        initGrid();
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#CodeOrName').bindEnterEvent(initGrid);
+        $('#LastExcuteUser').bindEnterEvent(initGrid);
+
+        //监听mark，mark变化时更新数据库中对应的值
+        form.on("switch(switchMark)", function (data) {
+            var ids = data.elem.parentElement.parentElement.firstElementChild.firstElementChild.value;
+            //if (data.value == 1) {
+            //    $.formSubmit({
+            //        url: "/TestCenterSystem/DataItem/IsSwitch?primaryKey=" + ids,
+            //        showMsg: false,
+            //        success: function (result) {
+            //            if (result.state == "-1" || result.state == "-2") {
+            //                $.layerMsg(result.message, 2);
+            //                initGrid();
+            //            } else {
+            //                $.formSubmit({
+            //                    url: "/TestCenterSystem/DataItem/Switch?primaryKey=" + ids + "&valueFlag=" + data.value + "&isDepend=" + "false",
+            //                    success: function () {
+            //                        initGrid();
+            //                    }
+            //                });
+            //            }
+            //        }
+            //    });
+            //} else {
+            //    $.formSubmit({
+            //        url: "/TestCenterSystem/DataItem/IsSwitch?primaryKey=" + ids,
+            //        showMsg: false,
+            //        success: function (result) {
+            //            if (result.state == "-3") {
+            //                layer.confirm(result.message, {
+            //                    btn: ['是', '否'] //按钮
+            //                }, function () {
+            //                    $.formSubmit({
+            //                        url: "/TestCenterSystem/DataItem/Switch?primaryKey=" + ids + "&valueFlag=" + data.value + "&isDepend=" + "true",
+            //                        success: function () {
+            //                            initGrid();
+            //                        }
+            //                    });
+            //                }, function () {
+            //                    $.formSubmit({
+            //                        url: "/TestCenterSystem/DataItem/Switch?primaryKey=" + ids + "&valueFlag=" + data.value + "&isDepend=" + "false",
+            //                        success: function () {
+            //                            initGrid();
+            //                        }
+            //                    });
+            //                });
+            //            } else {
+            //有效标志开启
+            $.formSubmit({
+                url: "/TestCenterSystem/DataItem/Switch?primaryKey=" + ids + "&valueFlag=" + data.value,//+ "&isDepend=" + "false",
+                success: function () {
+                    initGrid();
+                }
+            });
+            //            }
+
+            //        }
+            //    });
+            //}
+        });
+    });
+    function btn_searchKeyWord() {
+        $(".layui-laypage-skip").val(1);
+        initGrid();
+    }
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/DataItem/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                pageIndex: $(".layui-laypage-skip").val(),
+                keyWord: $("select[name=ItemType]").get(0).value + ";" + $("#CodeOrName").val()  + ";" + $("select[name=IsExecute]").get(0).value + ";" + $("select[name=IsDepend]").get(0).value
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10
+            },
+            success: function (result) {
+                count = result.count;
+
+            }
+        });
+    }
+    function btn_update() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录修改。", "warning");
+            return;
+        }
+        var no = count;
+        //判断是自定义还是公共
+        var $source = ids.parent().parent().children().eq(6);
+        if ($source.text().trim() == "公共") {
+            $.layerOpen({
+                id: "update",
+                title: "修改数据项",
+                width: "680px",
+                height: "490px",
+                content: "/TestCenterSystem/CommonItem/UpdateCommonItem?ItemCount=" + no + "&primaryKey=" + ids[0].value,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    initGrid();
+                }
+            });
+        }
+        else {
+            $.layerOpen({
+                id: "update",
+                title: "修改数据项",
+                width: "680px",
+                height: "490px",
+                content: "/TestCenterSystem/DataItem/Form?ItemCount=" + no + "&primaryKey=" + ids[0].value,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    initGrid();
+                }
+            });
+        }
+    }
+    function btn_manage() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录修改。", "warning");
+            return;
+        }
+        //判断是自定义还是公共
+        var $source = ids.parent().parent().children().eq(6);
+        var itemCode = ids.parent().parent().children().eq(1).text().trim();
+        if ($source.text().trim() == "自定义") {
+            //$.layerOpen({
+            //    id: "detail" + ids[0].value,
+            //    name: "",
+            //    title: "数据项配置",
+            //    width: "1000px",
+            //    height: "600px",
+            //    content: "/TestCenterSystem/CustomItem/Index?primaryKey=" + ids[0].value,
+            //    btn: null,
+            //    yes: function (iBody) {
+            //        //iBody.find('#btnSubmit').click();
+            //        //initGrid();
+            //    }
+            //});
+            parent.tab.tabAdd({
+                //id: "dataItem" + ids[0].value,
+                href: "/TestCenterSystem/CustomItem/Index?primaryKey=" + ids[0].value, //地址
+                icon: "",
+                title: "数据项" + itemCode + "配置"
+            });
+        }
+        else {
+            //$.layerOpen({
+            //    id: "detail" + ids[0].value,
+            //    title: "数据项配置",
+            //    width: "1000px",
+            //    height: "600px",
+            //    content: "/TestCenterSystem/CommonItem/CommonManage?primaryKey=" + ids[0].value,
+            //    btn: null
+            //});
+            parent.tab.tabAdd({
+                href: "/TestCenterSystem/CommonItem/CommonManage?primaryKey=" + ids[0].value, //地址
+                icon: "",
+                title: "数据项" + itemCode + "配置"
+            });
+        }
+    }
+    function btn_delete() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的数据项。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/TestCenterSystem/DataItem/Delete?primaryKey=' + ids[0].value,
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+    function btn_select() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        var no = count + 1;
+        $.layerOpen({
+            id: "detail",
+            title: "查看数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Detail?ItemCount=" + no + "&primaryKey=" + ids[0].value,
+            btn: null
+        });
+    }
+    //展开、收起
+    function openText() {
+        var go = $("#textblock").get(0);
+        var o = $("#opentool").get(0);
+        var c = $("#closetool").get(0);
+        if (go.className == "close") {
+            go.className = "open";
+            o.className = "hid";
+            c.className = "show";
+            return;
+        }
+        else {
+            go.className = "close";
+            c.className = "hid";
+            o.className = "show";
+            return;
+        }
+    }
+    function btn_customset_add() {
+        var no = count + 1;
+        $.layerOpen({
+            id: "add",
+            title: "自定义添加数据项",
+            width: "690px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Form?ItemCount=" + no,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    function btn_common_add() {
+        $.layerOpen({
+            id: "commonitem",
+            title: "公共添加数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/CommonItem/Index",//?primaryKey=" +  + ids[0].value,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    function btn_export() {
+        $.formSubmit({
+            url: '/TestCenterSystem/DataItem/ExportSql',
+            showMsg: false,
+            success: function (data) {
+                if (data.data == "")
+                    $.layerMsg("未找到可导出的脚本数据！", 2);
+                else
+                    $.ExportSqlFile("数据项脚本.Sql", data.data);
+            }
+        });
+    }
+
+    function btn_executeAll() {
+        var clientKey = $.cookie("dataitem_client_key");
+        layer.prompt({ title: '请输入url' }, function (val, index) {
+            layer.close(index);
+            layer.msg('开始批量执行数据项，可在首页查看进度！！！（注*：仅执行当前没有结果的数据项）');
+            $.formSubmit({
+                url: '/TestCenterSystem/DataItem/ExecuteAll?clientKey=' + clientKey + "&url=" + val,
+                async: true,
+                success: function (data) {
+                }
+            });
+        });
+    }
+
+    function btn_exportAll() {
+        $.formSubmit({
+            url: '/TestCenterSystem/DataItem/ExportAll',
+            async: true,
+            showMsg: false,
+            success: function (data) {
+                $.JSONToExcelConvertor(data.data, "数据项执行结果表", data.title);
+            }
+        });
+    }
+</script>

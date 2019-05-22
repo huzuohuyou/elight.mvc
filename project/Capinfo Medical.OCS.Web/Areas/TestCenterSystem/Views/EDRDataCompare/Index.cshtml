@@ -1,0 +1,549 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Default</title>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" type="text/css" href="~/Content/progres/zzsc.css?v=1" />
+    <link rel="stylesheet" type="text/css" href="~/Content/progres/normalize.css">
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+    @*<link href="~/Content/json2csvassets/bootstrap.min.css" type="text/css" rel="stylesheet" />*@
+    <link href="~/Content/json2csvassets/site.css?v=1" type="text/css" rel="stylesheet" />
+    <link href="~/Content/json2csvassets/github.css" type="text/css" rel="stylesheet" />
+    <style>
+        .layui-table-body {
+            position: relative;
+            overflow: auto;
+            margin-right: -1px;
+            margin-bottom: -1px;
+            height: 300px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel animated fadeIn" style="margin:-4px">
+        <div class="panel-body">
+            <div class="layui-tab layui-tab-brief">
+                <div class="layui-tab-content">
+                    <div class="layui-form-item" style="margin-bottom:5px">
+                        <label class="layui-form-label" style="text-align:left;">CDR1库：</label>
+                        <div class="layui-input-inline" style="width: 190px">
+                            <select id="CDRName1" name="CDRName1" style="width: 190px;height:30px;cursor:pointer">
+                                @*<option value="">全部</option>*@
+                                @{
+                                    if (ViewBag.CDRNames != null)
+                                    {
+                                        var list = ViewBag.CDRNames;
+                                        for (var i = 0; i < list.Count; i++)
+                                        {
+                                            <option value="@list[i].id">@list[i].text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <label class="layui-form-label" style="text-align:left;">CDR2库：</label>
+                        <div class="layui-input-inline" style="width: 190px">
+                            <select id="CDRName2" name="CDRNames2" style="width: 190px;height:30px;cursor:pointer">
+                                @{
+                                    if (ViewBag.CDRNames != null)
+                                    {
+                                        var list = ViewBag.CDRNames;
+                                        for (var i = 0; i < list.Count; i++)
+                                        {
+                                            <option value="@list[i].id">@list[i].text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="margin-bottom:5px">
+                        <label class="layui-form-label" style="text-align:left;">开始时间：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="startTime" id="startTime" value="" placeholder="开始时间：yyyy-mm-dd" autocomplete="off" class="layui-input" style="height:30px">
+                        </div>
+                        <label class="layui-form-label" style="text-align:left;">结束时间：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="endTime" id="endTime" value="" placeholder="结束时间：yyyy-mm-dd" autocomplete="off" class="layui-input" style="height:30px">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layui-btn-small layui-btn-normal" style="width:60px" onclick="Compare()">校验</button>
+                        </div>
+                    </div>
+                    <div style="height:550px;overflow:scroll;">
+                        @*&nbsp;&nbsp;&nbsp;&nbsp;入组结果对比分析
+                            <hr>*@
+                        @*<blockquote class="layui-elem-quote" style="margin-top:10px; padding:6px;border-left:5px solid #1E9FFF">
+                                入组结果对比分析
+                            </blockquote>*@
+                        <div class="layui-collapse" lay-filter="col" lay-accordion>
+                            <div class="layui-colla-item">
+                                <h2 class="layui-colla-title">入组结果对比分析</h2>
+                                <div id="ingroup_content" class="layui-colla-content">
+                                    <p style="margin-left:5px;">入组结果差异<span style="color:red;width:5px;font-size:larger" id="ingroup_diff_count">x</span>条，点击<a id="ingroupExportId" href="#" style="font-size: 13px; color: rgb(66, 139, 202)" onclick="btn_export_ingroup()"><b>&nbsp这里&nbsp</b></a>导出列表。</p>
+                                    <div class="layui-tab layui-tab-card" style="margin: 5px; ">
+                                        <table id="ingroupGrid" class="layui-table" lay-filter="ingropGridData" style="height: 150px !important">
+                                            <thead>
+                                                <tr></tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<blockquote class="layui-elem-quote" style="margin-top: 10px; padding: 6px; border-left: 5px solid #1E9FFF">
+                                    数据项结果对比分析
+                                    <a id="exportId" href="#" style="margin-right: 20px; margin-top: -2px; padding: 2px; width: 50px; height: 26px; font-size: 13px; color: rgb(66, 139, 202)" onclick="btn_exportitem()">结果导出</a>
+                                </blockquote>
+                                <hr/>*@
+                            <div class="layui-colla-item">
+                                <h2 class="layui-colla-title">
+                                    数据项结果对比分析
+                                    @*<a id="exportId" href="#" >结果导出</a>*@
+                                </h2>
+                                <div id="item_content" class="layui-colla-content">
+                                    <p style="margin-left: 5px;">
+                                        数据项差异<span style="color: red; width: 5px; font-size: larger" id="differcount">x</span>条，点击<a id="item_exportId" href="#" style="font-size: 13px; color: rgb(66, 139, 202)" onclick="btn_exportitem()"><b>&nbsp这里&nbsp</b></a>导出列表。
+                                    </p>
+                                    <div class="layui-tab layui-tab-card" style="margin: 5px;">
+                                        <table id="itemgrid" class="layui-table" lay-filter="itemgridData" style="margin-top: 0px;">
+                                            <thead>
+                                                <tr></tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<blockquote class="layui-elem-quote" style="margin-top:10px; padding:6px;border-left:5px solid #1E9FFF">
+                                    指标结果对比分析
+                                </blockquote>*@
+                            <div class="layui-colla-item">
+                                <h2 class="layui-colla-title">指标结果对比分析</h2>
+                                <div id="kpi_content" class="layui-colla-content">
+                                    <p style="margin-left:5px;">评价指标差异<span style="color:red;width:5px;font-size:larger" id="diff_count">x</span>条，点击<a id="exportId" href="#" style="font-size: 13px; color: rgb(66, 139, 202)" onclick="btn_export_kpi()"><b>&nbsp这里&nbsp</b></a>导出列表。</p>
+                                    <div class="layui-tab layui-tab-card" style="margin: 5px; ">
+                                        @*<div class="panel-body" style="padding:0px;">*@
+                                        <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+                                            <thead>
+                                                <tr></tr>
+                                            </thead>
+                                        </table>
+                                        @*</div>*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/json2csvassets/site.js"></script>
+<script src="~/Content/json2csvassets/highlight.pack.js"></script>
+<script src="~/Content/json2csvassets/jquery.csv.js"></script>
+
+<script type="text/javascript">
+    var paging;
+    var layer;
+    var element;
+    var form;
+    var laydate;
+    var table;
+    var layerIndex;
+    var layerCount = 0;
+
+    layui.use(['laypage', 'form', 'element', 'laydate', 'table'], function () {
+        //layer = parent.layer || layui.layer;
+        element = layui.element;
+        form = layui.form;
+        laydate = layui.laydate;
+        table = layui.table;
+        //日期
+        var executeStart = {
+            elem: '#startTime',
+            type: 'date',
+            min: '1700-01-01',
+            max: '2333-09-20',
+            show: true,
+            closeStop: '#startTime'
+
+        };
+        var executeEnd = {
+            elem: '#endTime',
+            type: 'date',
+            min: '1700-01-01',
+            max: '2333-09-20',
+            show: true,
+            closeStop: '#endTime'
+        };
+        var startMax = executeStart.max;
+        var endMin = executeEnd.min;
+        lay('#startTime').on('click', function (e) {
+            if ($('#endTime').val() != null && $('#endTime').val() != undefined && $('#endTime').val() != '') {
+                executeStart.max = $('#endTime').val();
+            } else
+                executeStart.max = startMax;
+            laydate.render(executeStart);
+        });
+        lay('#endTime').on('click', function (e) {
+            if ($('#startTime').val() != null && $('#startTime').val() != undefined && $('#startTime').val() != '') {
+                executeEnd.min = $('#startTime').val();
+            } else
+                executeEnd.min = endMin;
+            laydate.render(executeEnd);
+        });
+        //监听折叠
+        element.on('collapse(col)', function (data) {
+            if (data.show) {
+                if (data.title.get(0).innerText.search("入组") >= 0) {
+                    initInGroupGrid();
+                }
+                else if (data.title.get(0).innerText.search("数据项") >= 0) {
+                    initDataItemGrid();
+                }
+                else if (data.title.get(0).innerText.search("指标") >= 0) {
+                    initKPICompareGrid();
+                }
+            }
+        });
+    });
+    //校验
+    function Compare() {
+        if ($("#CDRName1").val() == $("#CDRName2").val()) {
+            $.layerMsg("所选择的两个CDR库相同，不需要做校验！", 6);
+            return;
+        }
+        layerLoading();
+        //initInGroupGrid();
+        //initDataItemGrid();
+        //initKPICompareGrid();
+        var ingroupclass = $("#ingroup_content").get(0).className;
+        var itemclass = $("#item_content").get(0).className;
+        var kpiclass = $("#kpi_content").get(0).className;
+        if (ingroupclass.search("layui-show") == -1 && itemclass.search("layui-show") == -1 && kpiclass.search("layui-show") == -1) {
+            $("#ingroup_content").get(0).className = "layui-colla-content layui-show";
+        }
+        ingroupclass = $("#ingroup_content").get(0).className;
+        if (ingroupclass.search("layui-show")>=0) {
+            initInGroupGrid();
+        } else if (itemclass.search("layui-show") >= 0) {
+            initDataItemGrid();
+        } else if (kpiclass.search("layui-show") >= 0) {
+            initKPICompareGrid();
+        }
+
+    }
+
+    function layerLoading() {
+        layerIndex = layer.load(1, {
+            shade: [0.13, '#000']
+        });//加载loading层
+        layerCount = 0;
+    }
+    function layerClose(count) {
+        if (count == 1)
+            layer.close(layerIndex);
+    }
+</script>
+<script type="text/html" id="ingroupBar">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" lay-event="detail">查看</a>
+</script>
+<script type="text/html" id="itemBar">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" lay-event="detail">查看</a>
+</script>
+<script type="text/html" id="kpi_edit">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>
+
+    @*<a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="查看" lay-event="detail"><i class="fa fa-eye" style="margin-right:0px;"></i></a>*@
+</script>
+
+<script type="text/html" id="ingroup_diff">
+    {{# if(d.IS_DIFFERENT=="是"){ }}
+    <i name="ingroupdiff" class="layui-icon" style="font-size: 25px; color: #ff5722;">&#x1007;</i>
+    {{# }else if(d.IS_DIFFERENT=="否"){ }}
+    <i name="ingroupsame" class="layui-icon" style="font-size: 25px; color: #5fb878;">&#x1005;</i>
+    {{# } }}
+</script>
+
+<script type="text/html" id="kpi_diff">
+    {{# if(d.差异=="1"){ }}
+    <i name="diff" class="layui-icon" style="font-size: 25px; color: #ff5722;">&#x1007;</i>
+    {{# }else if(d.差异=="0"){ }}
+    <i name="same" class="layui-icon" style="font-size: 25px; color: #5fb878;">&#x1005;</i>
+    {{# } }}
+</script>
+
+<script type="text/html" id="item_diff">
+    {{# if(d.IS_DIFFERENT=="1"){ }}
+    <i name="itemdiff" class="layui-icon" style="font-size: 25px; color: #ff5722;">&#x1007;</i>
+    {{# }else if(d.IS_DIFFERENT=="0"){ }}
+    <i name="itemsame" class="layui-icon" style="font-size: 25px; color: #5fb878;">&#x1005;</i>
+    {{# } }}
+</script>
+
+<script type="text/javascript">
+    var ingroup_table;
+    var layer2;
+    layui.use(['table', 'layer'], function () { //, 'tab'
+        layer2 = parent.layer || layui.layer;
+        ingroup_table = layui.table;
+        ingroup_table.on('tool(ingropGridData)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                $.layerOpen({
+                    id: "detail",
+                    title: "查看详情",
+                    width: "970px",
+                    height: "630px",
+                    content: "/TestCenterSystem/EDRDataCompare/InGroupResultDetail?route=/TestCenterSystem/EDRDataCompare/GetCpatsOrDetailsCompareValues?flag=" + data.INGROUP_TYPE_ID + '%26cdrID1=' +
+                        $("#CDRName1").val() + "%26cdrID2=" + $("#CDRName2").val() + '%26startTime=' + $("#startTime").val() + '%26endTime=' + $("#endTime").val()
+                        + '%26cdrName1=' + $("#CDRName1 option:selected").text() + '%26cdrName2=' + $("#CDRName2 option:selected").text(),
+                    //+ "&cdrName1=" + $("#CDRName1 option:selected").text() + "&cdrName2=" + $("#CDRName2 option:selected").text() + "&id=" + data.INGROUP_TYPE_ID,
+                    btn: null
+                });
+            }
+        });
+    });
+
+    function initInGroupGrid() {
+        var leftName = 'CDR1库数量';//$("#CDRName1 option:selected").text() + '库数量';
+        var rightName = 'CDR2库数量';//$("#CDRName2 option:selected").text() + '库数量';
+        ingroup_table.render({
+            id: 'ingroupGridID',
+            elem: '#ingroupGrid',
+            url: '/TestCenterSystem/EDRDataCompare/CompareInGroup?cdrID1=' + $("#CDRName1").val() + "&cdrID2=" + $("#CDRName2").val() + '&startTime=' +
+                $("#startTime").val() + '&endTime=' + $("#endTime").val(),
+            height: 315,
+            cols: [[
+                //{ filed: 'INGROUP_TYPE_ID', width: 0 },
+                { field: 'IS_DIFFERENT', title: '校验结果', width: 85, align: 'center', toolbar: '#ingroup_diff' },
+                { field: 'INGROUP_TYPE', title: '类别', width: 275 },
+                { field: 'LEFT_CDR_COUNT', title: leftName, width: 275, align: 'center' },
+                { field: 'RIGHT_CDR_COUNT', title: rightName, width: 275, align: 'center' },
+                //{ field: 'IS_DIFFERENT', title: '是否差异', sort: true, width: 134, align: 'center' },
+                { fixed: 'right', title: '操作', width: 95, align: 'center', toolbar: '#ingroupBar' }
+            ]],
+            done: function (res, curr, count) {
+                $("#ingroup_diff_count").text($("i[name='ingroupdiff']").length)
+                layerCount++;
+                layerClose(layerCount);
+            }
+        });
+    }
+
+    function btn_export_ingroup() {
+        if (ingroup_table.index > 0) {
+            $.formSubmit({
+                url: "/TestCenterSystem/EDRDataCompare/ExportIngroupCompareResult?cdrID1=" + $("#CDRName1").val() + "&cdrID2=" + $("#CDRName2").val() + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val()
+                    + "&cdrName1=" + $("#CDRName1 option:selected").text() + "&cdrName2=" + $("#CDRName2 option:selected").text(),
+                close: false,
+                showMsg: false,
+                success: function (data) {
+                    $.JSONToExcelConvertor(data.data, "入组对比结果汇总表", data.title);
+                }
+            });
+        } else {
+            $.layerMsg("未找到可以导出的结果！请先进行校验", 2);
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    var item_table;
+    var layer1;
+    layui.use(['table', 'layer'], function () { //, 'tab'
+        layer1 = parent.layer || layui.layer;
+        item_table = layui.table;
+        item_table.on('tool(itemgridData)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                $.layerOpen({
+                    id: "detail",
+                    title: "查看详情",
+                    width: "970px",
+                    height: "630px",
+                    content: "/TestCenterSystem/EDRDataCompare/DataItemResultDetail?route=/TestCenterSystem/EDRDataCompare/DataItemResult?id=" + data.SD_ITEM_ID + '%26cdrId1=' +
+                        $("#CDRName1").val() + "%26cdrId2=" + $("#CDRName2").val() + '%26startTime=' + $("#startTime").val() + '%26endTime=' + $("#endTime").val()
+                        + "&cdr1Name=" + $("#CDRName1 option:selected").text() + "&cdr2Name=" + $("#CDRName2 option:selected").text() + "&id=" + data.SD_ITEM_ID,
+                    btn: null
+                });
+            }
+        });
+    });
+
+    function initDataItemGrid() {
+        var leftName = 'CDR1库数量';//$("#CDRName1 option:selected").text() +
+        var rightName = 'CDR2库数量'; //$("#CDRName2 option:selected").text() +
+        item_table.render({
+            id: 'grid1',
+            elem: '#itemgrid',
+            url: '/TestCenterSystem/EDRDataCompare/CompareDataItem?cdrId1=' + $("#CDRName1").val() + "&cdrId2=" + $("#CDRName2").val() + '&startTime=' +
+                $("#startTime").val() + '&endTime=' + $("#endTime").val(),
+            height: 315,
+            cols: [[
+                //{ filed: 'SD_ITEM_ID', width: '0%' },
+                { field: '差异', title: '校验结果', width: 85, align: 'center', toolbar: '#item_diff' },
+                { field: 'SD_ITEM_NAME', title: '数据项名称', width: 275 },
+                { field: 'LEFT_CDR_COUNT', title: leftName, width: 275, align: 'center' },
+                { field: 'RIGHT_CDR_COUNT', title: rightName, width: 275, align: 'center' },
+                { fixed: 'right', title: '操作', width: 95, align: 'center', toolbar: '#itemBar' }
+            ]],
+            done: function (res, curr, count) {
+                var differcount = 0;
+                for (var i = 0; i < res.data.length; i++) {
+                    var ai = res.data[i];
+                    if (ai.IS_DIFFERENT === '1') {
+                        differcount++;
+                    }
+                }
+                $("#differcount").text(differcount);
+                layerCount++;
+                layerClose(layerCount);
+            }
+        });
+
+    }
+    function btn_exportitem() {
+        if (item_table.index > 0) {
+            $.formSubmit({
+                url: "/TestCenterSystem/EDRDataCompare/ExportDataItem?cdrId1=" + $("#CDRName1").val() + "&cdrId2=" + $("#CDRName2").val() + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val()
+                    + "&cdr1Name=" + $("#CDRName1 option:selected").text() + "&cdr2Name=" + $("#CDRName2 option:selected").text(),
+                close: false,
+                showMsg: false,
+                success: function (data) {
+                    $.JSONToExcelConvertor(data.data, "数据项对比结果汇总表", data.title);
+                }
+            });
+        } else {
+            $.layerMsg("未找到可以导出的结果！请先进行校验", 2);
+        }
+    }
+</script>
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var kpi_table;
+    var currentPage;
+    var field = 'ORDER_NO';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () { //, 'tab'
+        kpi_table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        kpi_table.on('tool(gridData)', function (obj) {
+            kpi_table.on('tool(gridData)', function (obj) {
+                console.log(obj.data);
+                var data = obj.data;
+                if (obj.event === 'detail') {
+                    btn_detail(data.指标ID);
+                } else if (obj.event === 'export') {
+                    btn_exportkpi();
+                }
+            });
+            kpi_table.on('sort(gridData)', function (obj) {
+                console.log("limit:" + $("[href]").val())
+                field = obj.field;
+                type = obj.type;
+            });
+        });
+    });
+
+    //初始化表格
+    function initKPICompareGrid() {
+        console.log($("[href]").val() == "")
+        kpi_table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/CompareKpi/CompareKpi?leftCdrId=' + $("#CDRName1").val() + '&rightCdrId=' + $("#CDRName2").val() + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val(),
+            page: false,
+            even: true,
+            height: 500,
+            limits: [1000],
+            limit: $("[href]").val() == "" ? 100 : parseInt($("[href]").val()),
+            cols: [[
+                { field: '差异', title: '校验结果', width: 85, align: 'center', toolbar: '#kpi_diff' },
+                { field: '指标名称', title: '指标名称', width: 240, },
+                { field: '左分子', title: 'CDR1库分子', width: 95, align: 'center', },
+                { field: '左分母', title: 'CDR1库分母', width: 95, align: 'center', },
+                { field: '左比率', title: 'CDR1库比率', width: 95, align: 'center', },
+                { field: '右分子', title: 'CDR2库分子', width: 95, align: 'center', },
+                { field: '右分母', title: 'CDR2库分母', width: 95, align: 'center', },
+                { field: '右比率', title: 'CDR2库比率', width: 95, align: 'center' },
+
+                { field: '指标ID', width: 0, show: false },
+                { fixed: 'right', title: '操作', width: 120, align: 'center', toolbar: '#kpi_edit' }
+
+            ]],
+            done: function (res, curr, count) {
+                $("#diff_count").text($("i[name='diff']").length)
+                layerCount++;
+                layerClose(layerCount);
+            }
+        });
+    }
+
+    //导出明细
+    function btn_detail(kpiId) {
+
+        $.layerOpen({
+            id: "edit",
+            title: "导出明细",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/CompareKpi/ExportDetail?leftCdrid=" + $("#CDRName1").val() + "&rightCdrId=" + $("#CDRName2").val() + "&kpiId=" + kpiId + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val(),
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+
+    }
+
+    function btn_export_kpi() {
+        if (item_table.index > 0) {
+            $.formSubmit({
+                url: "/TestCenterSystem/CompareKpi/ExportKPICompareResult?cdrId1=" + $("#CDRName1").val() + "&cdrId2=" + $("#CDRName2").val() + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val()
+                    + "&cdr1Name=" + $("#CDRName1 option:selected").text() + "&cdr2Name=" + $("#CDRName2 option:selected").text(),
+                close: false,
+                showMsg: false,
+                success: function (data) {
+                    $.JSONToExcelConvertor(data.data, "评价指标对比结果汇总表", data.title);
+                }
+            });
+        } else {
+            $.layerMsg("未找到可以导出的结果！请先进行校验", 2);
+        }
+    }
+
+    function btn_exportkpi() {
+
+        $.layerOpen({
+            id: "edit",
+            title: "导出汇总",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/CompareKpi/ExportReport?leftCdrid=" + $("#CDRName1").val() + "&rightCdrId=" + $("#CDRName2").val() + '&startTime=' + $('#startTime').val() + '&endTime=' + $('#endTime').val(),
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+
+    }
+
+</script>

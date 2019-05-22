@@ -1,0 +1,109 @@
+﻿@{
+    ViewBag.Title = "添加細分类别";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+@*<div id="form" class="layui-form" @*class="panel-body" style="margin-top: -10px;padding-top:10px">*@
+<form id="form" class="layui-form" style="margin-top: -10px;padding-top:10px">
+   
+    <div class="layui-form" style="margin-top:15px">
+        <div class="toolbar-search-input layui-form layui-inline" style="max-width: 250px; font-size: 13px">
+            <label class="layui-form-label  layui-inline" style="text-align: left; left: 50px">类别:</label>
+            <div class="layui-input-block" style="width: 390px;text-align: left; left: 50px">
+                <select lay-filter="selectType" id="selectType" name="TERM_CAT_NAME" lay-verify="required">
+                    <option value="">请选择类别</option>
+                    @{
+                        if (ViewBag.testType == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.testType;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option >@list[i]</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div> 
+        @Html.AntiForgeryToken() 
+        <div class="layui-form-item"style="margin-top:30px">
+            <label class="layui-form-label" style="text-align: left; left: 50px">细分类别：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="TERM_CAT1_NAME" style="width: 390px" lay-verify="required" placeholder="请输入细分类别名称" autocomplete="off" class="layui-input">
+            </div>
+            @*<input type="hidden" name="TERM_CAT1_CODE" />*@ 
+            <input type="hidden" name="TERM_CAT_CONF_ID" />
+        </div>
+        
+
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit1" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+@*</div>*@
+<script>
+
+    layui.use(['form', 'layedit'], function () {
+        var form = layui.form();
+        var layedit = layui.layedit;
+
+        //类别
+        form.on('select(selectType)',
+                     function (data) {
+                         refreshTypeName(data.value);
+                     });
+        //修改
+        //var primaryKey = $.getQueryString("primaryKey");
+        //if (primaryKey) {
+        //    $.ajax({
+        //        url: "/TestCenterSystem/TestDic/CategoryGetFormKW",
+        //        data: { primaryKey: primaryKey },
+        //        type: "post",
+        //        dataType: "json",
+        //        async: false,
+        //        success: function (data) {
+        //            $("#form").formSerialize(data);
+
+        //            $("#selectType").find("option[value='" + data.TERM_CAT_NAME + "']")
+        //                    .attr("selected", true); //根据值设置选中状态
+        //            refreshTypeName(data.TERM_CAT_NAME);
+        //        }
+        //    });
+        //}
+
+        ////修改
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/TestDic/CategoryGetFormSub",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+          
+        form.render();
+        //提交
+        form.on('submit(add)', function (data) { 
+            $.formSubmit({
+                url: "/TestCenterSystem/TestDic/Form1",/*获取窗体的路径 action*/
+                data: data.field
+            });
+            return false;
+        });
+
+    });
+ 
+
+</script>

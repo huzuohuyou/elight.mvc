@@ -1,0 +1,228 @@
+﻿@{
+    Layout = null;
+    //var count = ViewBag.list.count(); //as IList<TC_SD_FILTER_INFO>;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>入组管理</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="~/Content/jquery/jquery.cookie.js"></script>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group"></div>
+                <label class="layui-form-label layui-right" style="width:auto;float:right;">入组规则数量：<span id="Count"></span>&nbsp;条</label>
+            </div>
+
+            <table id="gridList" class="layui-table" lay-filter="gridData">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+<script type="text/html" id="operation">
+    @*<a class="layui-btn layui-btn-primary layui-btn-mini" lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="config">配置</a>
+        <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>*@
+
+    <a class="layui-btn @*layui-btn-primary*@ layui-btn-normal layui-btn-mini" style="margin-left:2px" title="查看" lay-event="detail"><i class="@*layui-icon*@ fa fa-eye" style="width:17px">@*&#xe615;*@</i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="编辑" lay-event="edit"><i class="layui-icon" style="width: 17px;margin-right: 1px"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="配置" lay-event="config"><i class="layui-icon" style="width: 17px;margin-right: 1px">&#xe620;</i></a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" style="margin-left:2px" title="删除" lay-event="del"><i class="layui-icon" style="width: 17px;margin-right: 1px"></i></a>
+</script>
+<script type="text/html" id="smark">
+    @*有效标志*@
+    {{# if(d.VALID_FLAG==1){ }}
+    <input id="{{d.SD_FILTER_ID}}" class="layui-form-checkbox" value="1" lay-filter="switchMark" type="checkbox" lay-skin="switch" checked>
+    {{# }else if(d.VALID_FLAG==0){ }}
+    <input id="{{d.SD_FILTER_ID}}" value="0" class="layui-form-checkbox" lay-filter="switchMark" type="checkbox" lay-skin="switch">
+    {{# } }}
+</script>
+<script type="text/html" id="state">
+    @*状态*@
+    {{# if(d.PROC_STAT_CODE==1){ }} 未执行
+    {{# }else if(d.PROC_STAT_CODE==2){ }}已执行
+    {{# }else if(d.PROC_STAT_CODE==3){ }}已清空
+    {{# }else if(d.PROC_STAT_CODE==4){ }}已锁定
+    @*{{# }else if(d.SD_FILTER_ID==selectId){ }}
+        <span style="color: #FF5722;">执行中</span>*@
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var layer;
+    var table;
+    var currentPage;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['laypage', 'table', 'form', 'layer'], function () {//'paging',
+        layer = parent.layer || layui.layer;
+        table = layui.table;
+        var form = layui.form;
+        //initGrid();
+        $("#toolbar").authorizeButton();
+        //$('#btnSearch').click(initGrid);
+        //$('#keyWord').bindEnterEvent(initGrid);
+        initGrid('SD_FILTER_ID', 'desc');
+
+        //监听工具条
+        table.on('tool(gridData)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data //获得当前行数据
+            , layEvent = obj.event; //获得 lay-event 对应的值
+            if (layEvent === 'detail') {
+                search(data.SD_FILTER_ID);
+            } else if (layEvent === 'del') {
+                del(data.SD_FILTER_ID);
+            } else if (layEvent === 'edit') {
+                edit(data.SD_FILTER_ID);
+            } else if (layEvent === 'config') {
+                config(data.SD_FILTER_ID);
+            }
+        });
+        //排序
+        table.on('sort(gridData)', function (obj) {
+            //initGrid(obj.field, obj.type);
+        });
+        //监听mark，切换
+        form.on("switch(switchMark)", function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/InGroup/Switch?primaryKey=" + data.elem.id + "&valueFlag=" + data.value,
+                success: function () {
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+        });
+    });
+    function initGrid(field, type) {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/InGroup/GetList?field=' + field + '&type=' + type,
+            page: false,
+            even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50],
+            limit: 10,
+            cols: [[
+                { field: 'SD_FILTER_ID', checkbox: true, fixed: true, },//   display: 'none'
+                { field: 'SD_FILTER_CODE', title: '入组规则代码', width: 150, align: 'center', fixed: true, sort: true },
+                { field: 'SD_FILTER_NAME', title: '入组规则名称', width: 150, align: 'center', sort: true },
+                { field: 'TC_PROJ_NAME', title: '项目', width: 170, align: 'center' },
+                { field: 'SD_NAME', title: '病种', width: 190, align: 'center', sort: true },
+                { field: 'VALID_FLAG', title: '有效标识', width: 100, align: 'center', sort: true, toolbar: '#smark' },
+                { field: 'PROC_STAT_CODE', title: '状态', width: 100, align: 'center', sort: true, toolbar: '#state' },
+                { field: 'AMOUNT', title: '结果数量', width: 100, align: 'center' },
+                { field: 'UPD_USER_ID', title: '最后操作者', width: 120, align: 'center', sort: true },
+                { field: 'UPD_DATE', title: '最后操作时间', width: 170, align: 'center', sort: true },
+                { fixed: 'right', title: '操作', width: 140, align: 'center', toolbar: '#operation' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+                document.getElementById("Count").innerHTML = totalCount;
+            }
+        });
+    }
+
+    function search(filterId) {
+        //var count = totalCount + 1;
+        $.layerOpen({
+            id: "detail",
+            title: "查看入组",
+            width: "670px",
+            height: "530px",
+            content: "/TestCenterSystem/InGroup/Detail?primaryKey=" + filterId,
+            btn: null
+        });
+    }
+    function edit(filterId) {
+        $.layerOpen({
+            id: "edit",
+            title: "编辑入组",
+            width: "670px",
+            height: "530px",
+            content: "/TestCenterSystem/InGroup/Form?primaryKey=" + filterId,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                table.reload('grid', { curr: currentPage });
+            }
+        });
+    }
+    function del(filterId) {
+        var flag = true;//用来解决多次点击，只触发一次事件
+        $.layerConfirm({
+            content: "您确定要删除该条信息吗？",
+            callback: function () {
+                if (flag) {
+                    flag = false;
+                    $.formSubmit({
+                        url: '/TestCenterSystem/InGroup/Delete',
+                        data: { primaryKey: filterId },
+                        success: function () {
+                            table.reload('grid', { curr: currentPage });
+                        }
+                    });
+                }
+            }
+        });
+    }
+    function config(filterId) {
+        $.layerOpen({
+            id: "configure",
+            title: "配置",
+            width: "1000px",
+            height: "618px",
+            content: "/TestCenterSystem/InGroup/Config2?primaryKey=" + filterId,
+            btn: null,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                table.reload('grid', { curr: currentPage });
+            }
+        });
+    }
+
+    function btn_add() {
+        if (document.getElementById("Count").innerHTML == "0") {
+            $.layerOpen({
+                id: "add",
+                title: "添加入组",
+                width: "670px",
+                height: "530px",
+                content: "/TestCenterSystem/InGroup/Form",
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    initGrid();
+                }
+            });
+        }
+        else {
+            $.layerMsg("最多能添加一条入组规则。", "warning");
+        }
+    }
+    //var selectId = "";
+    //function excuteState(selectId) {
+    //    selectId = selectId;
+    //    //initGrid();
+    //}
+
+</script>
+
+

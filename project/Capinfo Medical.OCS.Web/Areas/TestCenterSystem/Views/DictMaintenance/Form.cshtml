@@ -1,0 +1,90 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px;height:100px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width:90px">一级分类名称</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="CAT_ID" />
+            <input type="text" id="CAT_PA_NAME" name="CAT_PA_NAME" lay-verify="required" maxlength="60" placeholder="请输入一级分类名称" class="layui-input">
+        </div>
+        <label class="layui-form-label" style="width:90px">一级分类编码</label>
+        <div class="layui-input-inline">
+            <input type="text" id="CAT_PA_CODE" name="CAT_PA_CODE" lay-verify="required" maxlength="60" placeholder="请输入一级分类编码" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width:90px">二级分类名称</label>
+        <div class="layui-input-inline">
+            <input type="text" id="CAT_NAME" name="CAT_NAME" lay-verify="required" maxlength="60" placeholder="请输入二级分类名称" class="layui-input">
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:90px">字典类别</label>
+            <div class="layui-input-inline">
+                <select id="CAT_TYPE_CODE" name="CAT_TYPE_CODE" lay-verify="required">
+                    <option value="">请选择类别</option>
+                    @{
+                        if (ViewBag.ItemType != null)
+                        {
+                            var list = ViewBag.ItemType;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].CAT_TYPE_CODE">@list[i].CAT_TYPE_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit="" lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use('form', function () {
+        var form = layui.form();
+        var catId = $.getQueryString("catId");
+        if (catId) {
+            $.ajax({
+                url: "/TestCenterSystem/DictMaintenance/GetSingle",
+                data: { catId: catId },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                    layui.form().render('select')
+                }
+            });
+        };
+        form.render();
+
+        form.on('submit(add)', function (data) {
+            var obj = document.getElementById('CAT_TYPE_CODE');
+            var index = obj.selectedIndex;
+            var val = obj.options[index].text
+            params = {
+                model: data.field,
+                name: val
+            };
+            $.post('/TestCenterSystem/DictMaintenance/Form', params, function (res) {
+                if (res.state == 1) {
+                    $.layerClose();
+                    $.layerMsg(res.message, res.state);
+                }
+                else if (res.state == 2) {
+                    $.layerMsg(res.message, res.state);
+                }
+                else {
+                    $.layerMsg(res.message);
+                }
+            }, 'json');
+            return false;
+        });
+    });
+</script>

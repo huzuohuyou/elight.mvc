@@ -1,0 +1,247 @@
+﻿@{
+    ViewBag.Title = "";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-primary layui-btn-small" id="save" onclick="save()">
+                    @*<i class="fa fa-plus-square-o"></i>*@保存
+                </button>
+            </div>
+            <blockquote class="layui-elem-quote" style="margin-top: 10px; padding: 6px; border-left: 5px solid #1E9FFF">
+                源数据定义（查询语句）
+            </blockquote>
+            <div class="layui-btn-group" style="float: right; margin-bottom: 5px">
+                <button class="layui-btn layui-btn-primary layui-btn-small" id="edit" onclick="edit()">
+                    <i class="fa fa-pencil-square-o"></i>编辑
+                </button>
+            </div>
+            <div class="layui-input-inline" style="width: 100%;">
+                <textarea id="text_sql" lay-verify="required" placeholder="请输入查询语句" class="layui-textarea" disabled="disabled" style="min-height: 80px"></textarea>
+            </div>
+            <div style="margin-top: 5px; margin-left: 10px; display: none" id="btngroup">
+                <button class="layui-btn layui-btn-primary layui-btn-small" style="width: 100px" id="btnOK" onclick="btn_OK()">确认并预览</button>
+                <button class="layui-btn layui-btn-primary layui-btn-small" style="width: 100px" id="btnCancel" onclick="btn_Cancel()">取消</button>
+            </div>
+        </div>
+        <div id="resultShow" class="panel-body" style="display: none;width: 100%">
+            <label class="layui-form-label" style="width: 60px;padding-left:2px">字段预览</label>
+            <table id="result" class="layui-table" lay-filter="gridResult">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+            <blockquote class="layui-elem-quote" style="margin-top: 10px; padding: 6px; border-left: 5px solid #1E9FFF">
+                筛选规则定义
+            </blockquote>
+            <form class="layui-form" style="width: 100%">
+                <div class="layui-form-item" style="margin-bottom: 0px">
+                    <div class="layui-inline" style="margin-bottom: 0px;width: 100%">
+                        <label class="layui-form-label" style="width: 85px">选择表头列：</label>
+                        <div class="layui-input-block" id="titleColumn">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom: 0px">
+                    <div class="layui-inline" style="margin-bottom: 0px;width: 100%">
+                        <label class="layui-form-label" style="width: 85px">选择筛选列：</label>
+                        <div class="layui-input-block" id="screenColumn">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom: 0px">
+                    <div class="layui-inline" style="margin-bottom: 0px; width: 100%">
+                        <label class="layui-form-label" style="width: 85px">筛选方式：</label>
+                        <div class="layui-input-block">
+                            <input name="screenType" type="radio" value="1" title="链式" lay-filter="chained" checked />
+                            <input name="screenType" type="radio" value="2" title="正则" lay-filter="regular" />
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom: 0px; width: 100%">
+                    <textarea id="expression" lay-verify="required" placeholder="请输入表达式内容" class="layui-textarea"></textarea>
+                </div>
+                <div style="margin-top: 5px; margin-left: 10px;width: 100%" id="exebtn">
+                    <div class="layui-inline" style="margin-bottom: 0px; width: 100%">
+                        <button class="layui-btn layui-btn-primary layui-btn-small" style="width: 100px" id="btnExecute" onclick="btn_Execute()">执行</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-small" style="width: 100px" id="btnClear" onclick="btn_Clear()">清空</button>
+                        <label id="testurl" style="color: #1E9FFF; text-decoration: underline; display: none; width: 200px; cursor: pointer;padding-left: 20px" onclick="test_OnLine()">正则表达式在线测试</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+    var layer;
+    var table;
+    var form;
+    var primaryKey;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        form = layui.form;
+
+        primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            btn_OK();
+            //$.ajax({
+            //    url: "/TestCenterSystem/InGroup/GetForm",
+            //    data: { primaryKey: primaryKey },
+            //    type: "post",
+            //    dataType: "json",
+            //    async: false,
+            //    success: function (data) {
+            //        $("#form").formSerialize(data);
+            //    }
+            //});
+        }
+
+
+        //监听全选
+        form.on('checkbox(selectAll)', function (data) {
+            for (var i = 0; i < table.cache.grid.length; i++) {
+                $('#' + table.cache.grid[i].CODE)[0].checked = data.elem.checked;
+            }
+            form.render('checkbox');
+        });
+        form.on('radio(chained)', function (data) {
+            $("#testurl").css("display", "none");
+        });
+        form.on('radio(regular)', function (data) {
+            $("#testurl").css("display", "inherit");
+        });
+
+        $('#expression').context.onkeydown = function (e) {
+            var oEvent = e || event;
+            if (oEvent.keyCode == 190)//如果按下的是enter键oEvent.keyCode == 13;(.)符号oEvent.keyCode == 190
+            {
+                alert("遇到了(.)!");
+
+                //<select name="NUM_PRECISION">
+                //    <option value="">请选择小数位数</option>
+                //    <option value="0">不设小数点</option>
+                //    <option value="1">1位</option>
+                //    <option value="2">2位</option>
+                //    <option value="3">4位</option>
+                //</select>
+
+
+                //var index = $('#expression').val().lastIndexOf('.');
+                //if (index != -1 && index == $('#expression').val().length - 1) {
+                //    alert("遇到了(.)!");
+                //    //onselectionchange
+                //}
+            }
+        }
+    });
+    //初始化字段预览
+    function initGrid(dataList) {
+        table.render({
+            id: 'grid',
+            elem: '#result',
+            page: false,
+            even: true,
+            cols: [[
+                { field: 'CODE', title: '编号', width: 600, style: 'width:50%', align: 'center' },
+                { field: 'NAME', title: '名称', width: 600, style: 'width:50%', align: 'center' }
+            ]],
+            data: dataList
+        });
+    }
+    //初始化筛选规则
+    function initScreen(data, type, div) {
+        div.empty();;
+        for (var index = 0; index < data.length; index++) {
+            if (type === 'checkbox') {
+                if (index === 0)
+                    div.append("<input id='all' type='checkbox' value='all' title='全选' lay-filter='selectAll' lay-skin='primary' />");
+                div.append("<input id='" + data[index].CODE + "' type='" + type + "'  value='" + data[index].CODE + "'  title='" + data[index].CODE + "' lay-skin='primary'/>");//+
+            } else {
+                if (index === 0)
+                    div.append("<input name='screenCol' type='" + type + "'  value='" + data[index].CODE + "'  title='" + data[index].CODE + "' checked/>");//+
+                else
+                    div.append("<input name='screenCol' type='" + type + "'  value='" + data[index].CODE + "'  title='" + data[index].CODE + "'/>");//+
+            }
+        }
+    }
+    //编辑sql语句
+    function edit() {
+        $("#text_sql").removeAttr("disabled");
+        $("#text_sql").focus();
+        $("#btngroup").css("display", "inherit");
+    }
+    //保存
+    function save() {
+        $.layerOpen({
+            id: "lable",
+            title: "设置名称和标签",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/ScreeningTool/LableForm?primaryKey=" + primaryKey,
+            //btn: null
+        });
+    }
+    //确认并预览
+    function btn_OK() {
+        btn_Cancel();
+        //获取sql查询的结果列
+        result = [
+            {
+                "CODE": "C1",
+                "NAME": "TEST1"
+            }, {
+                "CODE": "C2",
+                "NAME": "TEST2"
+            }, {
+                "CODE": "C3",
+                "NAME": "TEST3"
+            }
+        ];
+        //初始化字段展示列表
+        initGrid(result);
+        $("#resultShow").css("display", "inherit");
+        initScreen(result, 'checkbox', $("#titleColumn"));
+        initScreen(result, 'radio', $("#screenColumn"));
+        form.render();
+    }
+    //取消
+    function btn_Cancel() {
+        $("#text_sql").attr("disabled", true);
+        $("#text_sql")[0].value = "";
+        $("#btngroup").css("display", "none");
+    }
+    //执行
+    function btn_Execute() {
+
+    }
+    //清空
+    function btn_Clear() {
+        $("#expression")[0].value = "";
+    }
+    //正则表达式在线测试
+    function test_OnLine() {
+        parent.tab.tabAdd({
+            href: "/TestCenterSystem/ScreeningTool/RegexTest",
+            icon: "",
+            title: "正则表达式在线测试"
+        });
+    }
+</script>

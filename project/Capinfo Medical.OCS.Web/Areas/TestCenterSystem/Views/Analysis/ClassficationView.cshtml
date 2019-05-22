@@ -1,0 +1,30 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+
+<div class="layui-tab layui-tab-card">
+    <ul class="layui-tab-title">
+        <li id="TAB_USER_CONTRIBUTION" class="layui-this">贡献量</li>
+        <li id="TAB_USER_TIME">用时</li>
+        <li id="TAB_USER_EFFICIENCY">效率</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/ContributionAnalysis.cshtml")
+        </div>
+        <div class="layui-tab-item">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/TimeAnalysis.cshtml")
+        </div>
+        <div class="layui-tab-item">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/EfficiencyAnalysis.cshtml")
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $('#TAB_USER_CONTRIBUTION').bind('click', function () { initContribute(); });
+        $('#TAB_USER_TIME').bind('click', function () { ExcuteTimeMethods(); });
+        $('#TAB_USER_EFFICIENCY').bind('click', function () { ExcuteEfficiencyMethods(); });
+    });
+</script>

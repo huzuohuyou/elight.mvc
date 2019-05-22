@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<connectionStrings>
+  <!--<add name="connStr" connectionString="Data Source=192.168.2.9\CDR64;Initial Catalog=HJ.PDP;User ID=dev;Password=dev123!@#" providerName="System.Data.SqlClient"/>-->
+  <!--<add name="PDPEntities" connectionString="metadata=res://*/PDP.PDPModel.csdl|res://*/PDP.PDPModel.ssdl|res://*/PDP.PDPModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=192.168.2.9\CDR64;initial catalog=HJ.PDP;user id=dev;password=dev123!@#;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />-->
+  
+  <!--<add name="connStr" connectionString="Data Source=192.168.2.11\HJCDR;Initial Catalog=HJ.PDP;User ID=sa;Password=rjgcb2.60" providerName="System.Data.SqlClient"/>-->
+  <!--<add name="PDPEntities" connectionString="metadata=res://*/PDP.PDPModel.csdl|res://*/PDP.PDPModel.ssdl|res://*/PDP.PDPModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=192.168.2.11\HJCDR;initial catalog=HJ.PDP;user id=sa;password=rjgcb2.60;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />-->
+
+  <!--<add name="connStr" connectionString="Data Source=192.168.2.11\HJCDR;Initial Catalog=HJ.DEV.PDP;User ID=sa;Password=rjgcb2.60" providerName="System.Data.SqlClient"/>
+  <add name="PDPEntities" connectionString="metadata=res://*/PDP.PDPModel.csdl|res://*/PDP.PDPModel.ssdl|res://*/PDP.PDPModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=192.168.2.11\HJCDR;initial catalog=HJ.DEV.PDP;user id=sa;password=rjgcb2.60;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />-->
+
+  <add name="connStr" connectionString="Data Source=192.168.2.11\HJCDR;Initial Catalog=HJ.PDP;User ID=sa;Password=rjgcb2.60" providerName="System.Data.SqlClient"/>
+  <add name="PDPEntities" connectionString="metadata=res://*/PDP.PDPModel.csdl|res://*/PDP.PDPModel.ssdl|res://*/PDP.PDPModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=192.168.2.11\HJCDR;initial catalog=HJ.PDP;user id=sa;password=rjgcb2.60;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+
+  <!--<add name="connStr" connectionString="Data Source=localhost;Initial Catalog=HJ.DEV.PDP;User ID=sa;Password=sa123" providerName="System.Data.SqlClient"/>-->
+  <!--<add name="PDPEntities" connectionString="metadata=res://*/PDP.PDPModel.csdl|res://*/PDP.PDPModel.ssdl|res://*/PDP.PDPModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=localhost;initial catalog=HJ.DEV.PDP;user id=sa;password=sa123;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />-->
+</connectionStrings>
+

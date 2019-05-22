@@ -1,0 +1,454 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>KPI列表</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js?v=12"></script>
+    <script src="~/Content/framework/js/global.js?v=02"></script>
+    <script src="~/Content/jquery/jquery.md5.js"></script>
+    <script src="~/Content/jquery/jquery.cookie.js?v=1"></script>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            height: 30px;
+            width:120px;
+            line-height: 30px;
+            line-height: 36px\9;
+            border: 1px solid #e6e6e6;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+
+        .hideoverflow {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: clip;
+        }
+        .percentwidth-40 {
+            width:40%;
+        }
+        .percentwidth-10 {
+            width:10%;
+        }
+        .wrap {
+            width: 320px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group" ></div>
+                @*指标数量：<label id="kpi_count"></label>个*@
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="keyWord" placeholder="请输入指标名称、编码" autocomplete="off" class="layui-input" style="width: 190px;">
+                </div>
+                <form id="form" class="layui-form" style=" float: right;">
+                    <div class="layui-inline" style="float: right;">
+                        <label class="layui-form-label" style="top:-3px;">指标类别</label>
+                        @*<div class="layui-input-inline" style="height:30px;">
+                            <select id="SD_EKPI_CAT" name="SD_EKPI_CAT" lay-verify="required" style="height:30px;top:-10px;">
+                                <option value="" style="height:30px;">请选择类别</option>
+                                <option value="0">全部信息</option>
+                                <option value="10000">基本信息</option>
+                                <option value="10001">检查</option>
+                                <option value="10002">检验</option>
+                                <option value="10003">医嘱</option>
+                                <option value="10004">病理</option>
+                            </select>
+                        </div>*@
+                        <div class="layui-input-inline">
+                            <select id="SD_EKPI_CAT" lay-verify="required">
+                                <option value="">请选择类别</option>
+                                @{
+                                    if (ViewBag.ItemType == null)
+                                    {
+                                    }
+                                    else
+                                    {
+                                        var list = ViewBag.ItemType;
+                                        for (var i = 0; i < list.Count; i++)
+                                        {
+                                            <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <table id="gridList" class="layui-form layui-table table-hover elight-table" lay-skin="line">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" lay-skin="primary">
+                        </th>
+                        <th style="min-width: 100px;">指标编码</th>
+                        <th style="min-width: 300px;" class="percentwidth-40 hideoverflow">指标名称</th>
+                        <th style="display:none">指标简称</th>
+                        <th style="min-width: 100px;">指标类别</th>
+                        <th style="min-width: 100px;">指标类型</th>
+                        <th style="min-width: 90px; text-align: center">有效标志</th>
+                        <th style="min-width: 90px; text-align: center">状态</th>
+                        <th style="min-width: 90px; text-align: center">正负向</th>
+                        <th style="display:none">是否执行</th>
+                        <th style="min-width: 70px; text-align: center">分子</th>
+                        <th style="min-width: 70px; text-align: center">分母</th>
+                        <th style="min-width: 70px; text-align: center">比率</th>
+                    </tr>
+                </thead>
+                <!--内容容器-->
+                <tbody id="content"></tbody>
+            </table>
+            <div id="paged"></div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input id="selected" name="KPIID" type="checkbox" lay-skin="primary" value="{{item.SD_EKPI_ID+"&"+item.SD_EKPI_NAME+"&"+item.SD_EKPI_NAME}}">
+        </td>
+        <td name ="ProjectID" style="display:none">{{item.ProjectID}}</td>
+        <td name ="SDId" style="display:none">{{item.SDId}}</td>
+        <td name ="KPIID" style="display:none">{{item.SD_EKPI_ID}}</td>
+        <td >{{item.SD_EKPI_CODE}} </td>
+        <td ><div class="wrap" >{{item.SD_EKPI_NAME}}</div> </td>
+        <td style="display:none">{{item.KPIAlias}}</td>
+        <td>{{item.SD_EKPI_CAT}}</td>
+        <td style="text-align:center">
+            {{# if(item.IS_NUM==1){ }}非统计类
+            {{# }else if(item.IS_NUM==2){ }}统计类
+            {{# }else{ }}[未指定]
+            {{# } }}
+        </td>
+        <td style="text-align: center">
+            @*有效标志*@
+            {{# if(item.VALID_FLAG==1){ }} <input id="mark" class="layui-form-checkbox" value="1" lay-filter="switchMark" type="checkbox" lay-skin="switch" checked>
+            {{# }else if(item.VALID_FLAG==0){ }} <input id="mark" value="0" class="layui-form-checkbox" lay-filter="switchMark" type="checkbox" lay-skin="switch">
+            {{# } }}
+        </td>
+        <td  style="text-align:center">{{item.IsExecuted}}</td>
+        <td style="text-align:center">
+            {{# if(item.IS_POSITIVE==1){ }}+
+            {{# }else if(item.IS_POSITIVE==0){ }}-
+            {{# }else{ }}[未指定]
+            {{# } }}
+        </td>
+        <td style="display:none">{{item.IsExecuted}}</td>
+        <td style="text-align: center">{{item.FenZi}}</td>
+        <td style="text-align: center">{{item.FenMu}}</td>
+        <td >{{item.Percent}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form', 'layer'], function () {
+        var layer = parent.layer || layui.layer;
+        var form = layui.form();
+        paging = layui.paging();
+        initGrid();
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(SearchKeyWords);
+        $('#keyWord').bindEnterEvent(SearchKeyWords);
+
+        //监听mark，mark变化时更新数据库中对应的值
+        form.on("switch(switchMark)", function (data) {
+            var ids = data.elem.parentElement.parentElement.firstElementChild.firstElementChild.value;
+            //有效标志开启
+            $.formSubmit({
+                url: "/TestCenterSystem/KPI/Switch?primaryKey=" + ids + "&valueFlag=" + data.value,
+                success: function () {
+                    initGrid();
+                }
+            });
+        });
+
+    });
+
+    function SearchKeyWords() {
+        $(".layui-laypage-skip").val(1);
+        initGrid();
+    }
+
+    function initGrid() {
+        
+        paging.init({
+            url: '/TestCenterSystem/KPI/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                pageIndex: $(".layui-laypage-skip").val(),
+                keyWord: $("#keyWord").val()+"#"+$("#SD_EKPI_CAT").val()
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function (result) {
+                $("#kpi_count").text(result.count);
+            }
+        });
+    }
+
+    function btn_add() {
+        $.layerOpen({
+            id: "add",
+            title: "新增KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_edit() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选单条记录修改KPI。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "修改KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form?primaryKey=" + ids[0].value,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_manage() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录编辑公式。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "编辑公式",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/Formula/Form?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+    }
+
+    function btn_test() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录测试。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "测试公式",
+            width: "670px;",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/Test?primaryKey=" + ids[0],
+            btn: [],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_delete() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的KPI。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/TestCenterSystem/KPI/Delete?primaryKey=' + ids[0].value,
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+
+    function btn_detail() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选单条记录查看KPI。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail",
+            title: "查看KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form?primaryKey=" + ids[0].value,
+            btn: null
+        });
+    }
+
+    function btn_configure() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");//.gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选单条记录配置KPI。", "warning");
+            return;
+        }
+        var id = ids[0].value.split('&')[0];
+        var code = ids[0].value.split('&')[1];
+        var name = ids[0].value.split('&')[2];
+        $.layerOpen({
+            id: "configure",
+            title: "编码："+code +" 名称："+name,
+            width: "1000px",
+            height: "618px",
+            content: "/TestCenterSystem/KPI/Configure?primaryKey=" + id,
+            close:false,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    function refreshState() {
+        initGrid();
+    }
+
+    function btn_exportsql() {
+        $.ajax({
+            type: "GET",  //提交方式
+            url: "/TestCenterSystem/KPI/ExportSQL",
+            data: { },//数据，这里使用的是Json格式进行传输
+            success: function (result) {//返回数据根据结果进行相应的处理
+                var obj = JSON.parse(result);
+                if (obj.message == "无可导出数据！！！") {
+                    top.layer.msg(obj.message);
+                } else {
+                    downloadFile(obj.message);
+                       }
+
+            }
+        });
+        
+    }
+
+    //文件下载
+    function btn_export_all() {
+        $.layerOpen({
+            id: "edit",
+            title: "导出明细",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAll",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+        //$.ajax({
+        //    type: "GET",  //提交方式
+        //    url: "/TestCenterSystem/KPI/ExportAll",//路径
+        //    data: {},//数据，这里使用的是Json格式进行传输
+        //    success: function (obj) {//返回数据根据结果进行相应的处理
+        //        var result = JSON.parse(obj);
+        //        if (result.data == null)
+        //            $.layerMsg("评价指标未执行或已清空，无法导出！", 2);
+        //        else
+        //            $.JSONToExcelConvertor(result.data.data, "评价指标_执行结果表", result.data.title);
+        //    }
+        //});
+    }
+
+    //文件下载ExportAllDetail
+    function btn_export_all_detail() {
+        
+        $.layerOpen({
+            id: "edit",
+            title: "导出明细",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAllKPIValueDetail",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+       
+    }
+    function btn_export_all() {
+        $.layerOpen({
+            id: "edit",
+            title: "导出结果",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAll",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+    }
+    ////文件下载
+    //function btn_excute_all() {
+
+    //    $.ajax({
+    //        type: "GET", 
+    //        url: "/TestCenterSystem/KPI/ExcuteAll",
+    //        data: { clientKey: $.cookie("kpi_client_key"), },
+    //        success: function (obj) {
+    //            var result = JSON.parse(obj);
+    //            if (result.data == null)
+    //                $.layerMsg("评价指标未执行或已清空，无法导出！", 2);
+    //            else
+    //                $.JSONToExcelConvertor(result.data.data, "评价指标_执行结果表", result.data.title);
+    //        }
+    //    });
+    //}
+
+    function downloadFile(url) {
+        try {
+            var elemIF = document.createElement("iframe");
+            elemIF.src = url;
+            elemIF.style.display = "none";
+            document.body.appendChild(elemIF);
+        } catch (e) {
+
+        }
+    }
+</script>

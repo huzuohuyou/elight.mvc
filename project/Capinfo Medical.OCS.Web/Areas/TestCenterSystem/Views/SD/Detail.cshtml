@@ -1,0 +1,55 @@
+﻿@{
+    ViewBag.Title = "Detail";
+    //Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<form id="form" class="layui-form" style="margin-top: 10px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item" id="result" style="margin-left:5px">
+        <table id="gridList" class="layui-table" lay-filter="gridData">
+            <thead>
+                <tr></tr>
+            </thead>
+        </table>
+    </div>
+</form>
+
+@*<link href="~/Content/layui/css/layui.css" rel="stylesheet" />*@
+<link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+<link href="~/Content/framework/css/console.css" rel="stylesheet" />
+<link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+<link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+
+<script>
+    var table;
+    layui.use(['form', 'layer', 'table'], function () {
+        var form = layui.form;
+        var layer = layui.layer;
+        table = layui.table;
+        initGrid('@ViewBag.result');
+
+    });
+
+    function initGrid(data) {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/SD/GetErrorInfo?resultdata=' + data,
+            //data: [{ "resultdata": data }],
+            page: false,
+            even: true,
+            method: 'post',
+            cols: [[{ field: 'a', title: '错误原因', width: 100, align: 'center' },//100
+                    { field: 'b', title: '指标名称', width: 440, align: 'center' }//240
+            ]],
+            where: { resultdata: data },//JSON.stringify(data)
+            done: function (res, curr, count) {
+            }
+        });
+    }
+
+</script>

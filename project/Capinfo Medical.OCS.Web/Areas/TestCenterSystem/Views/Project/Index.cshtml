@@ -1,0 +1,230 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>项目管理</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js?V=12"></script>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group"></div>
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="keyWord" placeholder="项目名称" autocomplete="off" class="layui-input" style="width: 200px">
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; width: 80px; right: -5px">项目类型:</label>
+                    <div class="layui-input-block" style="width: 150px;">
+                        <select name="ProjectType" lay-filter="ProjectType">
+                            <option value="">请选择项目类型</option>
+                            <option value="all">全部</option>
+                            <option value="1">质控</option>
+                            <option value="2">科研</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <table id="gridList" class="layui-form layui-table elight-table" lay-skin="line">
+                <thead>
+                    <tr>
+                        <th style="text-align: center">
+                            <input type="checkbox" lay-skin="primary">
+                        </th>
+                        <th style="text-align: center">项目名称</th>
+                        <th style="text-align: center">项目类型</th>
+                        <th style="text-align: center">创建时间</th>
+                        <th style="text-align: center">病种数量</th>
+                    </tr>
+                </thead>
+                <!--内容容器-->
+                <tbody id="content"></tbody>
+            </table>
+            <div id="paged"></div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td style="text-align: center">
+            <input type="checkbox" lay-skin="primary" value="{{item.ProjectID}}">
+        </td>
+        <td style="text-align: center">{{item.ProjectName}}</td>
+        <td style="text-align: center">{{item.ProjectType == 1 ? "质控" : "科研"}}</td>
+        <td style="text-align: center">{{item.CreateTime}}</td>
+        <td style="text-align: center">{{item.SDCount}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="3">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form'], function () {
+        var form = layui.form();
+        paging = layui.paging();
+        initGrid();
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(initGrid);
+        $('#keyWord').bindEnterEvent(initGrid);
+
+        form.on('select(ProjectType)', function (data) {
+            initGrid();
+        });
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/Project/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                keyWord: $("select[name=ProjectType]").get(0).value + ";" + $("#keyWord").val()
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10
+            },
+            success: function () {
+
+            }
+        });
+    }
+
+    function btn_add() {
+        $.layerOpen({
+            id: "add",
+            title: "新增项目",
+            width: "670px",
+            height: "600px",
+            content: "/TestCenterSystem/Project/AddForm",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_edit() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录修改", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "修改项目",
+            width: "670px",
+            height: "600px",
+            content: "/TestCenterSystem/Project/AddForm?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_sd() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条配置病种", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "add",
+            title: "病种管理",
+            width: "968px",
+            height: "600px",
+            content: "/TestCenterSystem/SD/Index?TC_PROJ_ID=" + ids[0],
+            close: false,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_del() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选单条记录删除", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/TestCenterSystem/Project/Delete',
+                    data: { projectID: ids.join() },
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+
+    function btn_detail() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail",
+            title: "查看角色",
+            width: "670px",
+            height: "500px",
+            content: "/TestCenterSystem/Project/Detail?primaryKey=" + ids[0],
+            btn: null
+        });
+    }
+
+    function btn_export() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        layui.use('laydate', function () {
+            var laydate = layui.laydate;
+            $.formSubmit({
+                url: '/TestCenterSystem/Project/ExportSql?primaryKey=' + ids,
+                showMsg: false,
+                success: function (data) {
+                    if (data.data == "")
+                        $.layerMsg("未找到可导出的脚本数据！", 2);
+                    else {
+                        //var value = $.base64({ data: data.data, type: 1, unicode: true });// data.data
+                        //data.data.encode.encoding.AnsiX923
+                        $.ExportSqlFile("项目数据脚本" + laydate.now(0, 'YYYY-MM-DD') + ".txt", data.data);
+                    }
+                }
+            });
+        });
+    }
+</script>

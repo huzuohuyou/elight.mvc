@@ -1,0 +1,66 @@
+﻿@{
+    ViewBag.Title = "Detail";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<form id="form" class="layui-form" style="margin-top: 25px;margin-left:25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">入组规则代码</label>
+            <div class="layui-input-inline" style="width: 500px;">
+                <input type="hidden" name="SD_FILTER_ID" />
+                <input type="text" name="SD_FILTER_CODE"  autocomplete="off" class="layui-input" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">入组规则名称</label>
+            <div class="layui-input-inline" style="width: 500px;">
+                <input type="text" name="SD_FILTER_NAME" autocomplete="off" class="layui-input" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:83px">顺序号</label>
+            <div class="layui-input-inline" style="width: 500px;">
+                <input type="text" name="ORDER_NO" autocomplete="off" class="layui-input" readonly/>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width:auto">入组逻辑描述</label>
+        <div class="layui-input-inline" style="width: 500px;">
+            <textarea name="SD_FILTER_ALGO" class="layui-textarea" style="height:216px" readonly></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form();
+        var layer = layui.layer;
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/InGroup/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+    })
+
+</script>
+

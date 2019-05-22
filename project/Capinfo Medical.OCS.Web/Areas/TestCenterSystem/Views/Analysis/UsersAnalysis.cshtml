@@ -1,0 +1,32 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+
+<div class="layui-tab layui-tab-card" lay-filter="usersTotalAnalysis">
+    <ul class="layui-tab-title">
+        <li id="TAB_USERS_TOTALCONTRIBUTION" class="layui-this">贡献量</li>
+        <li id="TAB_USERS_TOTALTIME">用时</li>
+        <li id="TAB_USERS_TOTALEFFICIENCY">效率</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/UsersTotalContributions.cshtml")
+        </div>
+        <div class="layui-tab-item">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/UsersTotalTime.cshtml")
+        </div>
+        <div class="layui-tab-item">
+            @Html.Partial("~/Areas/TestCenterSystem/Views/Analysis/UsersTotalEfficiency.cshtml")
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    //initTimeByIngroup();
+    $(function () {
+        $('#TAB_USERS_TOTALCONTRIBUTION').bind('click', function () { initTotalCon(); });
+        $('#TAB_USERS_TOTALTIME').bind('click', function () { initTotalTime(); });
+        $('#TAB_USERS_TOTALEFFICIENCY').bind('click', function () { initTotalEfficiency(); });
+    });
+</script>
+

@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">开始日期</label>
+            <div class="layui-input-block">
+                <input type="text" name="date" id="date" autocomplete="off" class="layui-input"  onclick="layui.laydate({elem: this})">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">结束日期</label>
+            <div class="layui-input-block">
+                <input type="text" name="date" id="date" autocomplete="off" class="layui-input" style="width: 205px;" onclick="layui.laydate({elem: this})">
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">PatientID</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" autocomplete="off" placeholder="请输入PatientID" class="layui-input" style="width: 91%;">
+        </div>
+    </div>
+    <div class="layui-form-item">
+       
+        <div class="layui-inline" style="margin-left: 200px;">
+            <button class="layui-btn layui-btn-normal layui-btn-small">执&nbsp;行</button>
+            <button class="layui-btn layui-btn-normal layui-btn-small">测&nbsp;试</button>
+            <button class="layui-btn layui-btn-normal layui-btn-small">导&nbsp;出</button>
+            <button class="layui-btn layui-btn-normal layui-btn-small">清&nbsp;库</button>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <table id="gridList" class="layui-form layui-table table-hover elight-table" lay-skin="line" style="margin-left: 40px;    width: 86%;">
+            <thead>
+                <tr>
+                    <th>PatientID</th>
+                    <th>入组样本ID</th>
+                    <th>结果值</th>
+                </tr>
+            </thead>
+            <!--内容容器-->
+            <tbody id="content"></tbody>
+        </table>
+    </div>
+        <div class="layui-form-item" style="display: none">
+            <div class="layui-input-inline">
+                <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+            </div>
+        </div>
+</form>
+<script>
+    layui.use(['form','laydate'], function () {
+        var form = layui.form()
+        , laydate = layui.laydate;
+        $("#OrganizeId").bindSelect({
+            url: "/System/Organize/GetListTreeSelect"
+        });
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/System/Role/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/KPI/Form",
+                data: data.field
+            });
+            return false;
+        });
+    });
+
+</script>

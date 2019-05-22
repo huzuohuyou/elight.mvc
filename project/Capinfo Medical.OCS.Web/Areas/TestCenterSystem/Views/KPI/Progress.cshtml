@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="text-align:left">过程进度</label>
+        <div class="layui-inline" style="width: 85%;float: left;margin-left: 0px;margin-top: 18px;">
+            <div class="layui-input-block" style="margin-left: 0px;">
+                <div class="layui-progress " lay-showpercent="true" lay-filter="kpi_progress">
+                    <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="text-align:left">过程日志</label>
+        <div class="layui-input-block" style="width: 85%;">
+            <textarea id="process_note" placeholder="日志内容" class="layui-textarea" style="height: 400px;"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+<script src="~/Content/layui/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/ztree/js/jquery.ztree.all.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js?v=1"></script>
+<script src="~/Content/pace/pace.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+<script src="~/signalr/hubs"></script>
+<script>
+    //长连接客户端生成唯一Key
+    initKey();
+    function initKey() {
+        if ($.cookie('kpi_client_key') == null) {
+            var kpi_client_key = guid();
+            $.cookie('kpi_client_key', kpi_client_key, { expires: 999, path: '/' });
+        }
+        console.log('kpi_client_key:' + $.cookie('kpi_client_key'))
+    }
+    //layui进度条
+    layui.use('element', function () {
+        var $ = layui.jquery
+        , element = layui.element(); //Tab的切换功能，切换事件监听等，需要依赖element模块
+        // 触发事件进度状态长连接
+        $(function () {
+            var chat = $.connection.processHub;
+            chat.client.addNewMessageToPage = function (name, percent, title, note, executeList) {
+                if (percent == -1) {
+                    $('#process_note').val("无入组病人数据！");
+                }
+                console.log('==>' + note)
+                var kpi_client_key = $.cookie("kpi_client_key")
+                console.log(percent);
+                if (name == kpi_client_key) {
+                    element.progress('kpi_progress', percent)
+                    var str = $('#process_note').val(); //先获取原有的值
+                    $('#process_note').val(note + "\n" + str); //拼接新值
+                }
+            };
+            $.connection.hub.start().done(function () {
+            });
+        });
+    });
+
+
+</script>

@@ -1,0 +1,284 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>字典选项列表</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <link href="~/Content/ztree/css/metroStyle/metroStyle.css" rel="stylesheet" />
+    <script src="~/Content/ztree/js/jquery.ztree.all.min.js"></script>
+
+</head>
+<body>
+    <div class="container-fluid fadeIn animated">
+        <div class="row">
+            
+            <div class="col-md-3" style="width: 30%; float: left;">
+                
+                <div class="elight-panel container-panel">
+                    <ul id="treeItem" class="ztree"></ul>
+                </div>
+            </div>
+            <div class="col-md-9" style="width: 70%; float: right;">
+                <div class="panel container-panel">
+                    <div class="panel-body" style="padding-top:0px;">
+
+                        <div class="layui-form-item" hidden>
+                            <label class="layui-form-label" style="text-align: left;">描述</label>
+                            <div class="layui-input-inline" style="width: 100%;">
+                                <textarea name="Remark" placeholder="请输入内容" class="layui-textarea"></textarea>
+                            </div>
+                        </div>
+                        <div id="toolbar" class="elight-table-toolbar">
+                            <div class="layui-btn-group">
+                                <button id="kpi-del" onclick="btn_delete()" class="layui-btn layui-btn-primary layui-btn-small">   <i class="fa fa-eject" aria-hidden="true"></i> 删除</button>
+                            </div>
+
+                            <div class="toolbar-search-input" hidden>
+                                <input type="text" id="keyWord" placeholder="选项名称或编码" autocomplete="off" class="layui-input" />
+                            </div>
+                        </div>
+                        <table id="paramgridList" class="layui-form layui-table elight-table" lay-skin="line">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" lay-skin="primary">
+                                    </th>
+                                    <th>参数</th>
+                                    <th>编码</th>
+                                    <th>名称</th>
+                                    <th>数据类型</th>
+                                </tr>
+                            </thead>
+                            <!--内容容器-->
+                            <tbody id="content"></tbody>
+                        </table>
+                        <form id="form" class="layui-form" style="margin-top: 25px">
+                            <div class="layui-form-item" style="display:none">
+                                <label class="layui-form-label" style="text-align: left;">ID</label>
+                                <div class="layui-input-inline" style="width: 100%;">
+                                    <input id="ID" name="ID"  class="layui-textarea">
+                                </div>
+                            </div>
+                            <div class="layui-form-item" style="display:none">
+                                <label class="layui-form-label" style="text-align: left;">KPI_ID</label>
+                                <div class="layui-input-inline" style="width: 100%;">
+                                    <input id="KPI_ID" name="KPI_ID" class="layui-textarea">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" style="text-align: left;">分母公式</label>
+                                <div class="layui-input-inline" style="width: 100%;">
+                                    <textarea name="NUM_FORMULA" placeholder="请输入内容" class="layui-textarea"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" style="text-align: left;">分子公式</label>
+                                <div class="layui-input-inline" style="width: 100%;">
+                                    <textarea name="FRA_FORMULA" placeholder="请输入内容" class="layui-textarea"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item" style="display: none">
+                                <div class="layui-input-block">
+                                    <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="paged"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input type="checkbox" lay-skin="primary" value="{{item.Id}}">
+        </td>
+        <td>{{item.ShowCode}}</td>
+        <td>{{item.DataItemCode}}</td>
+        <td>{{item.DataItemName}}</td>
+        <td>{{item.DataType}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="6">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<script>
+    layui.use('form', function () {
+        var form = layui.form();
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/KPISet/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+        form.on('submit(add)', function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/KPISet/Form",
+                data: data.field
+            });
+            return false;
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+    var paging;
+    var firstClickTime = null;
+    layui.config({
+        base: parent._baseUrl
+    }).use('paging', function () {
+
+        paging = layui.paging();
+        var setting = {
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            check: {
+                enable: false,
+                chkStyle: "checkbox",
+                chkDisabledInherit: false
+            },
+            async: {
+                enable: true,
+                url: "/TestCenterSystem/Formula/GetListTree",
+                dataType: "text",
+                autoParam: ["id", "name"]
+            }, callback: {
+                onAsyncSuccess: function (event, treeId, treeNode, msg) {
+                    var node = zTreeObj.getNodesByFilter(function (node) {
+                        return node.level == 1
+                    }, true);
+                    zTreeObj.selectNode(node);
+                    zTreeObj.setting.callback.onClick(event, zTreeObj.setting.treeId, node);
+                },
+                onDblClick: function (event, treeId, treeNode) {
+                    addParam(treeNode);
+                },
+                onClick: function (event, treeId, treeNode) { }
+            }
+        };
+
+        var zTreeObj = $.fn.zTree.init($("#treeItem"), setting);
+        initGrid();
+        //$("#toolbar").authorizeButton();
+        $('#btnSearch').click(initGrid);
+        $('#keyWord').bindEnterEvent(initGrid);
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/KPIParam/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                projectId: 1,
+                sdId: 1,
+                kpiId: $("#KPI_ID").val(),
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function () {
+
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+            }
+        });
+    }
+
+    function addParam(treeNode) {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/KPIParam/Add",
+            data: { projectId: 1, sdId: 1, kpiid: $("#KPI_ID").val(), dataitemid: treeNode.id },
+            dataType: "json",
+            success: function (data) {
+                initGrid();
+            },
+            error: function (data) {
+                $.layerMsg(data.msg, "warning");
+                initGrid();
+            }
+        });
+    }
+
+    function btn_delete() {
+        
+
+        var pids = $("#paramgridList").gridSelectedRowValue();
+        if (pids.length < 1) {
+            $.layerMsg("请勾选需要删除的选项。", "warning");
+            return;
+        }
+
+        $.layerConfirm({
+            content: "您已选中" + pids.length + "条数据, 确定删除吗？",
+            callback: function () {
+
+                $.ajax({
+                    type: "GET",
+                    url: '/TestCenterSystem/KPIParam/Delete?primaryKey=' + pids[0],
+                    dataType: "json",
+                    success: function (data) {
+                        initGrid();
+                        $.layerMsg("删除成功！", 1);
+                    },
+                    error: function (data) {
+                        $.layerMsg("删除失败！", 1);
+                        initGrid();
+                    }
+                });
+                //$.formSubmit({
+                //    url: '/TestCenterSystem/KPIParam/Delete?primaryKey=' + pids[0],
+                //    success: function () {
+                //        initGrid();
+                //        $.layerMsg("删除成功！", 1);
+                //    },
+                //    error: function () {
+                //        initGrid();
+                //        $.layerMsg("删除成功！", 1);
+                //    }
+                //});
+            }
+        });
+    }
+
+
+</script>
+

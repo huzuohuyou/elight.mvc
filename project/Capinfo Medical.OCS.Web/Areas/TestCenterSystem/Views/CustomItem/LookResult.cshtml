@@ -1,0 +1,73 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.ItemNam 查看结果值</title>
+    <script type="text/javascript" src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+    <link href="~/Content/jsonFormater/jsonFormater.css" type="text/css" rel="stylesheet" />
+    <link href="~/Content/jsonFormater/demo.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="~/Content/jsonFormater/jsonFormater.js"></script>
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: "微软雅黑";
+            font-size: 12px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+            table .tdLeft {
+                width: 150px;
+                text-align: right;
+                line-height: 30px;
+            }
+
+            table .tdRight {
+                width: 400px;
+            }
+
+            table textarea {
+                width: 400px;
+                height: 100px;
+            }
+
+        #container {
+            margin-left: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+    </div>
+</body>
+</html>
+<script>
+    var parentFrame;
+    for (var i = 0; i < parent.length; i++) {
+        if (parent[i].document.URL.indexOf("/TestCenterSystem/CustomItem/Index1") > 0) {
+            parentFrame = parent[i];
+            break;
+        }
+    }
+    showJson();
+    function showJson() {
+        var val = parentFrame.document.getElementById("selectValue").value;
+        var options = {
+            dom: '#container' //对应容器的css选择器
+        };
+        var jf = new JsonFormater(options); //创建对象
+        jf.doFormat(val); //格式化json
+    };
+</script>
+

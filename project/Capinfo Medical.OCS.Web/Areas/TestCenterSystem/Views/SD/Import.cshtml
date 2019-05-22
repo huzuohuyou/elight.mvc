@@ -1,0 +1,135 @@
+﻿@{
+    ViewBag.Title = "Progress";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
+    <link rel="bookmark" type="image/ico" href="~/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/json2csvassets/bootstrap.min.css" type="text/css" rel="stylesheet" />
+
+</head>
+<body>
+    <form id="form" class="layui-form" style="margin-top: 20px" @*method="post" action="/TestCenterSystem/SD/InsertRsnData?IsRsnOrDict="+$('input[name="IsRsnOrDict"]:checked').val()*@ enctype="multipart/form-data">
+        <a href="../../Templates/指标析因模板.xlsx" download="" style="margin-left:30px;color: #1E9FFF;text-decoration: underline;cursor: pointer;padding-left: 20px"> @*<img src="~/Content/images/download.jpg" style="cursor: move; width: 2.5%; height:2.5%;">*@ @*<i class="fa fa-arrow-circle-down"></i>*@下载指标析因模板</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@*color:#2a6496;text-decoration:underline*@
+        @*<a href="#"><img src="~/Content/images/download.jpg" style="cursor: move; width: 3.5%; height:3.5%;">下载字典模板</a><br /><br />*@
+        <p></p>
+        <div class="layui-form-item" id="result">
+            <div class="layui-input-block" style="margin-left: 50px;margin-top: 20px;">
+                <input type="radio" name="IsRsnOrDict" @*id="IsRsnOrDict"*@ value="0" title="指标析因" checked="">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <input type="radio" name="IsRsnOrDict" @*id="IsRsnOrDict"*@ value="1" title="字典">
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-left:50px">
+            <div class="layui-inline">
+                <input type="file" name="filebase" id="filebase" /><br /><br />
+            </div>
+        </div>
+        <div class="layui-form-item" style="display: none">
+            <div class="layui-input-inline">
+                <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="sub">提交</button>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
+@*<link href="~/Content/layui/css/layui.css" rel="stylesheet" />*@
+<link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+<link href="~/Content/framework/css/console.css" rel="stylesheet" />
+<link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+<link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/jquery/ajaxfileupload.js"></script>
+<script src="~/Content/layui2.0/layui.js?v=1"></script>
+<script src="~/Content/framework/js/global.js"></script>
+
+<script>
+    var table;
+    layui.use(['form', 'layer', 'table', 'upload'], function () {
+        var form = layui.form;
+        var layer = layui.layer;
+        var upload = layui.upload;
+        table = layui.table;
+        var primaryKey = $.getQueryString("primaryKey");
+        var TC_PROJ_ID = $.getQueryString("TC_PROJ_ID");
+
+        form.on('submit(sub)', function (data) {
+            if ($('input[name="IsRsnOrDict"]:checked').val() == "1") {
+                layer.msg('该功能暂时未实现！', { icon: 2, time: 1000 });
+                return false;
+            }
+            if ($.trim($("#filebase").val()) == '') {
+                layer.msg('请选择文件！', { icon: 2, time: 1000 });
+                return false;
+            }
+
+            $.ajaxFileUpload({
+                url: '/TestCenterSystem/SD/InsertRsnData?primaryKey=' + primaryKey + '&IsRsnOrDict=' + $('input[name="IsRsnOrDict"]:checked').val() + "&TC_PROJ_ID=" + TC_PROJ_ID, //用于文件上传的服务器端请求地址
+                secureuri: false, //是否需要安全协议，一般设置为false
+                fileElementId: 'filebase', //文件上传域的ID
+                type: "post",
+                dataType: 'json', //返回值类型 一般设置为json
+                success: function (data, status) //服务器成功响应处理函数
+                {
+                    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                    parent.layer.close(index);
+                    $.layerMsg("文件导入成功！", 1);
+                },
+                error: function (data, status, e) //服务器响应失败处理函数
+                {
+                    //btn_addErrorInfo(data.responseText);
+                    var result = JSON.parse(data.responseText);
+                    if (result.Item1 == "success") {
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index);
+                        //layer.msg('文件导入成功！', { icon: 1, time: 1000 });
+                        $.layerMsg("文件导入成功！", "success");
+                    } else if (result.Item1 == "catch") {
+                        $.layerMsg(result.Item2, "error");
+                    }
+                    else {
+                        layer.open({
+                            type: 2 //此处表示iframe
+                           , title: '导入结果异常信息'
+                           , area: ['550px', '340px']///['350px', '220px']
+                           , shade: 0
+                            //, offset: [ //随机坐标
+                            //  Math.random() * ($(window).height() - 300)
+                            //  , Math.random() * ($(window).width() - 390)
+                            //]
+                           , content: "/TestCenterSystem/SD/Detail?data=" + result.Item2
+                           , btn: []
+                           , yes: function () {
+                           }
+                        });
+                    }
+                }
+            });
+
+            return false;
+        });
+    })
+
+    //function btn_addErrorInfo(data) {
+    //    $("#result").append("<div class='layui-inline'>" +
+    //        "<label class='layui-form-label' style='width:20px'>" + "错误信息" + "</label>" +
+    //        "<div  class='layui-input-inline' style='width:70%;height:20px'>" +
+    //        "<textarea class='layui-textarea' readonly>" + data + "</div>" +
+    //        "</div></div>");
+    //    return false;
+    //}
+
+
+</script>

@@ -1,0 +1,283 @@
+﻿@{
+    ViewBag.Title = "数据项管理";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <style>
+        .close {
+            width: 800px;
+            height: 20px;
+            overflow: hidden;
+            line-height: 24px;
+        }
+
+        .open {
+            width: 800px;
+            line-height: 24px;
+        }
+
+        .hid {
+            visibility: hidden;
+        }
+
+        .show {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel-body">
+        <div style="margin-left:10px;">
+            <div>
+                <p style="font-size: 13px;">数据项代码：@ViewBag.SD_ITEM_CODE &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;数据项名称：@ViewBag.SD_ITEM_NAME</p>
+                <p style="font-size: 13px;">数据项简称：@ViewBag.SD_ITEM_ALIAS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;数据项类别：@ViewBag.SD_ITEM_CAT_NAME</p>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <p id="textblock" class="close">逻辑描述：@ViewBag.SD_ITEM_ALGO</p>
+                    </div>
+                    @if (ViewBag.SD_ITEM_ALGO != null && ViewBag.SD_ITEM_ALGO.Length > 52)
+                    {
+                        <div class="layui-inline">
+                            <p id="opentool" class="show" style="font-size: 13px; float: right">
+                                <a href="javascript:void(0);" onclick="openText()" style="color: dodgerblue" title="展开">
+                                    展开<i class="layui-icon" style="font-size: 13px;">&#xe61a;</i>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="layui-inline">
+                            <p id="closetool" class="hid" style="font-size: 13px;">
+                                <a href="javascript:void(0);" onclick="openText()" style="color: dodgerblue;" title="收起">
+                                    收起<i class="layui-icon" style="font-size: 13px;">&#xe619;</i>
+                                </a>
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div id="toolbar" class="elight-table-toolbar">
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_mapping_add()"><i class="layui-icon">&#xe654;</i>添加映射 </button>
+                <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_select()"><i class="layui-icon">&#xe60b;</i>查看 </button>
+                <button class="layui-btn layui-btn-primary layui-btn-small" onclick="btn_delete()"><i class="layui-icon">&#xe640;</i>删除 </button>
+            </div>
+            <table id="gridList" class="layui-form layui-table table-hover elight-table" style="background-color:white;width:900px" lay-skin="line">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" lay-skin="primary">
+                        </th>
+                        <th style="text-align: center">数据项代码</th>
+                        <th style="text-align: center">数据项名称</th>
+                    </tr>
+                </thead>
+                <tbody id="content"></tbody>
+            </table>
+            <div id="paged" style="padding-left:20px;"></div>
+        </div>
+        <div style="display: none">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="OK">提交</button>
+        </div>
+    </div>
+</body>
+</html>
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input id="selected" type="checkbox" lay-skin="primary" value="{{item.DEP_SD_ITEM_ID}}">
+        </td>
+        <td style="text-align: center">{{item.DEP_SD_ITEM_CODE}}</td>
+        <td style="text-align: center">{{item.DEP_SD_ITEM_NAME}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<script id="contentTpl1" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td style="text-align: center">{{item.SD_CPAT_NO}}</td>
+        <td style="text-align: center">{{item.SD_CPAT_DATE}}</td>
+        <td style="text-align: center">{{item.PATIENT_ID}}</td>
+        <td style="text-align: center">{{item.SD_ITEM_VALUE}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="8">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script>
+    var paging;
+    var primaryKey;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['form', 'layer', 'element', 'paging'], function () {
+        var form = layui.form(),
+            layer = parent.layer || layui.layer,
+            element = layui.element();
+        paging = layui.paging();
+        primaryKey = $.getQueryString("primaryKey");
+        initGrid();
+
+        //触发事件
+        var active = {
+            executing: function (othis) {
+                var DISABLED = 'layui-btn-disabled';
+                if (othis.hasClass(DISABLED)) return;
+                //模拟loading
+                var n = 0, timer = setInterval(function () {
+                    n = n + Math.random() * 10 | 0;
+                    if (n > 100) {
+                        n = 100;
+                        clearInterval(timer);
+                        othis.removeClass(DISABLED);
+                    }
+                    layui.element().progress('executeProgress', n + '%');
+                }, 300 + Math.random() * 1000);
+                othis.addClass(DISABLED);
+            }
+        };
+        $('.site-demo-active').on('click', function () {
+            var othis = $(this), type = $(this).data('type');
+            active[type] ? active[type].call(this, othis) : '';
+        });
+
+        form.on('submit(OK)', function (data) {
+            var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+            parent.layer.close(index); //关闭窗口
+        });
+    });
+
+
+    //展开、收起
+    function openText() {
+        var go = $("#textblock").get(0);
+        var o = $("#opentool").get(0);
+        var c = $("#closetool").get(0);
+        if (go.className == "close") {
+            go.className = "open";
+            o.className = "hid";
+            c.className = "show";
+            return;
+        }
+        else {
+            go.className = "close";
+            c.className = "hid";
+            o.className = "show";
+            return;
+        }
+    }
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/CommonItem/Index',
+            type: "post",
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                primaryKey: primaryKey//,
+                //keyWord: $("#keyWord").val()
+            },
+            checkbox: true,
+            //singleSelected: false,//设置单选或者多选
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 5
+            },
+            success: function (result) {
+            }
+        });
+    }
+
+    function initData() {
+        paging.init({
+            url: '/TestCenterSystem/CommonItem/GetItemValueList',
+            elem: '#content1',
+            tempElem: '#contentTpl1',
+            params: {
+                primaryKey: primaryKey
+                //keyWord: $("#keyWord").val()
+            },
+            checkbox: false,
+            pageConfig: {
+                elem: '#paged1',
+                pageSize: 10
+            },
+            success: function (result) {
+                //count = result.count;
+            }
+        });
+    }
+
+
+    function btn_delete() {
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的数据项。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/TestCenterSystem/CommonItem/Delete?itemId=' + primaryKey + "&depId=" + ids[0].value,
+                    //data: { userIds: ids.join() },
+                    close: false,
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+    function btn_select() {
+        //此处待定，应该查看该数据项的相关配置
+        var ids = $("#gridList").children('tbody').find("input[id=selected][type=checkbox]:checked");
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录查看。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail" + ids[0].value,
+            title: "查看数据项",
+            width: "680px",
+            height: "530px",
+            content: "/TestCenterSystem/CommonItem/Index?primaryKey=" + ids[0].value,//?ItemCount=" + ids[0],
+            btn: null
+        });
+    }
+    function btn_mapping_add() {
+        $.layerOpen({
+            id: "mapping" + primaryKey,
+            title: "添加依赖",
+            width: "730px",
+            height: "600px",
+            content: "/TestCenterSystem/CommonItem/AddCommonDepend?primaryKey=" + primaryKey,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+
+
+</script>

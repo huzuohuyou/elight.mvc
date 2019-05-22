@@ -1,0 +1,780 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>字典选项列表</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/ztree/css/metroStyle/metroStyle.css" rel="stylesheet" />
+
+    <script src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="~/Content/ztree/js/jquery.ztree.all.min.js"></script>
+    <script src="~/Content/jquery/jquery.md5.js"></script>
+    <script src="~/Content/jquery/jquery.cookie.js?v=1"></script>
+    <script src="~/Content/pace/pace.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+
+</head>
+<body>
+    <div class="panel animated fadeIn" style="padding-top: 0px;margin: 0px;">
+        <div>
+            <br />
+            <div>
+                <div class="layui-inline" style="width: 100%;">
+
+                    <div id="showdiv" style="float: left;"><span id="SD_EKPI_ALGO" style="margin-left: 25px;float: left;">逻辑描述：</span></div>
+                    <a href="#" id="show_more" style="PADDING-LEFT: 25PX;float: left;color:#34a8fe" onclick="showHideCode()">展开</a>
+                </div>
+            </div>
+        </div>
+        <div class="panel-body" style="padding-top: 0px;height: 642px;top:-5px;">
+            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">公式</li>
+                    <li>测试</li>
+                </ul>
+                <div class="layui-tab-content" style="height: 100px;">
+                    <div class="layui-tab-item layui-show">
+                        <div class="container-fluid fadeIn animated">
+                            <div class="row">
+
+                                <div class="col-md-3" style="width: 30%; float: left;">
+                                    <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small" style="float: right;width: 48px;height: 30px;" onclick="initTree()">
+                                        <i class="layui-icon">&#xe615;</i>
+                                    </button>
+                                    <div class="toolbar-search-input">
+                                        <input type="text" id="keyWord" placeholder="请输入数据项名称、编码" autocomplete="off" class="layui-input" style="width: 80%;height: 30px;" onkeypress="initTree();">
+                                    </div>
+                                    <div class="elight-panel container-panel" style="height:380px;overflow-x: hidden;overflow-y: scroll;">
+                                        <ul id="treeItem" class="ztree"></ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-9" style="width: 70%; float: right;">
+                                    <div class="panel container-panel" style="margin-top: 0px !important;">
+                                        <div class="panel-body" style="padding-top:0px;">
+
+                                            <div class="layui-form-item" hidden>
+                                                <label class="layui-form-label" style="text-align: left;">描述</label>
+                                                <div class="layui-input-inline" style="width: 100%;">
+                                                    <textarea name="Remark" placeholder="请输入内容" class="layui-textarea"></textarea>
+                                                </div>
+                                            </div>
+                                            <div id="toolbar" class="elight-table-toolbar">
+                                                <div class="layui-btn-group">
+                                                    <button id="kpi-del" onclick="btn_delete()" class="layui-btn layui-btn-primary layui-btn-small">   <i class="fa fa-eject" aria-hidden="true"></i> 删除</button>
+                                                    <button id="kpi-validate" onclick="btn_validate()" class="layui-btn layui-btn-primary layui-btn-small">   <i class="fa fa-eject" aria-hidden="true"></i> 校验</button>
+                                                </div>
+                                            </div>
+                                            <table id="paramgridList" class="layui-form layui-table elight-table" lay-skin="line">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <input type="checkbox" lay-skin="primary">
+                                                        </th>
+                                                        <th>参数</th>
+                                                        <th>编码</th>
+                                                        <th>名称</th>
+                                                        <th>数据类型</th>
+                                                        <th>结果数量</th>
+                                                    </tr>
+                                                </thead>
+                                                <!--内容容器-->
+                                                <tbody id="content"></tbody>
+                                            </table>
+                                            <form id="form" class="layui-form" style="margin-top: 0px">
+
+                                                <div class="layui-form-item" style="display:none">
+                                                    <label class="layui-form-label" style="text-align: left;">SD_ID</label>
+                                                    <div class="layui-input-inline" style="width: 100%;">
+                                                        <input id="ID" name="SD_ID" class="layui-textarea">
+                                                    </div>
+                                                </div>
+                                                <div class="layui-form-item" style="display:none">
+                                                    <label class="layui-form-label" style="text-align: left;">SD_LAYER_ID</label>
+                                                    <div class="layui-input-inline" style="width: 100%;">
+                                                        <input id="SD_LAYER_ID" name="SD_LAYER_ID" class="layui-textarea">
+                                                    </div>
+                                                </div>
+                                                <div class="layui-form-item">
+                                                    <label class="layui-form-label" style="text-align: left;">层级公式</label>
+                                                    <div class="layui-input-inline" style="width: 100%;">
+                                                        <textarea id="SD_LAYER_FORMULA" name="SD_LAYER_FORMULA" placeholder="请输入内容" class="layui-textarea"></textarea>
+                                                    </div>
+                                                </div>
+
+                                                <div class="layui-form-item" style="display: none">
+                                                    <div class="layui-input-block">
+                                                        <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-tab-item" style="width: 100%;">
+                        <form id="form" class="layui-form" style="margin-top: 0px;width: 100%;">
+                            @Html.AntiForgeryToken()
+                            <div class="layui-form-item">
+                                <div class="layui-inline" style="width:45%">
+                                    <label class="layui-form-label" style="text-align:left">开始日期</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="startDate" id="startDate" autocomplete="off" class="layui-input" style="height: 30px;margin-top: 3px;" onclick="layui.laydate({elem: this})">
+                                    </div>
+                                </div>
+                                <div class="layui-inline" style="width:45%;float:right;margin-right:0px;">
+                                    <label class="layui-form-label" style="text-align:left">结束日期</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="endDate" id="endDate" autocomplete="off" class="layui-input" style="height: 30px;margin-top: 3px;" onclick="layui.laydate({elem: this})">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" style="text-align:left">患者编号</label>
+                                <div class="layui-input-block">
+                                    <input id="patientNo" name="title" autocomplete="off" placeholder="请输入患者编号" class="layui-input" style="width: 100%;height: 30px;margin-top: 3px;">
+                                </div>
+                            </div>
+                            <div class="layui-form-item" style="text-align:center">
+
+                                <div class="layui-inline">
+                                    <label class="layui-btn layui-btn-normal layui-btn-small" style="width:80px;" onclick="btn_test('test')" id="test">测&nbsp;试</label>
+                                    <label class="layui-btn layui-btn-normal layui-btn-small" style="width:80px;" id="exe" onclick="btn_excute('excute')">执&nbsp;行</label>
+                                    <label class="layui-btn layui-btn-normal layui-btn-small" style="width:80px;" onclick="btn_export()">导&nbsp;出</label>
+                                    <label class="layui-btn layui-btn-normal layui-btn-small" style="width:80px;" onclick="btn_lock('lock')" id="lock">锁&nbsp;定</label>
+                                    <label class="layui-btn layui-btn-normal layui-btn-small" style="width:80px;" onclick="btn_clear()">清&nbsp;库</label>
+                                </div>
+                            </div>
+                            <div id="process_content" class="layui-form-item">
+                                <label class="layui-form-label" style="text-align:left">执行进度</label>
+                                <div class="layui-inline" style="width: 85%;float: left;margin-left: 0px;margin-top: 18px;">
+                                    <div class="layui-input-block" style="margin-left: 0px;">
+                                        <div class="layui-progress " lay-showpercent="true" lay-filter="kpi_progress">
+                                            <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="log_content" class="layui-form-item">
+                                <label class="layui-form-label" style="text-align:left">执行日志</label>
+                                <div class="layui-input-block">
+                                    <textarea id="process_note" placeholder="日志内容" class="layui-textarea"></textarea>
+                                </div>
+
+                            </div>
+                            <div class="layui-form-item" style="display: none">
+                                <div class="layui-input-inline">
+                                    <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+                                </div>
+                            </div>
+                            <div id="test_content" class="layui-form-item" style="width:100%;">
+                                <table id="gridList" class="layui-form layui-table table-hover elight-table" lay-skin="line" style="width:100%;">
+                                    <thead>
+                                        <tr>
+
+                                            <th>入组样本ID</th>
+
+                                        </tr>
+                                    </thead>
+                                    <!--内容容器-->
+                                    <tbody id="kpi-result-content"></tbody>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--KPI参数内容模板-->
+<script id="contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            <input type="checkbox" lay-skin="primary" value="{{item.ID}}">
+        </td>
+        <td>{{item.SHOW_CODE}}</td>
+        <td>{{item.DATAITEM_CODE}}</td>
+        <td>{{item.DATAITEM_NAME}}</td>
+        <td>{{item.DATA_TYPE}}</td>
+        <td>{{item.VALUE_COUNT}}</td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="6">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<!--KPI测试结果内容模板-->
+<script id="kpi-result-contentTpl" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+
+        <td>{{item.SD_CPAT_NO}}</td>
+
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="6">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+
+<script>
+
+    $("#process_content").hide();
+    $("#log_content").hide();
+    $("#test_content").hide();
+    var layerId = $.getQueryString("primaryKey");
+    function initSet() {
+        if (layerId) {
+            $.ajax({
+                url: "/TestCenterSystem/LayerInfo/GetForm",
+                data: { primaryKey: layerId },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+    }
+
+    function initProcLog() {
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/KPI/ProcLog",
+                data: { primaryKey: primaryKey },
+                type: "get",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#startDate").val(data.startDate);
+                    $("#endDate").val(data.endDate);
+                    $("#patientNo").text(data.patientId);
+                }
+            });
+        }
+
+    }
+
+    //根据指定url刷新页面
+    function refrenshParent() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/LayerInfo/Index") > 0) {
+                parent[i].initGrid();
+                break;
+            }
+        }
+    }
+    //TC_SD_EKPI_FORMULA公式信息显示
+
+    function btn_validate() {
+        $.layerConfirm({
+            content: "校验当前KPI？",
+            callback: function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/TestCenterSystem/LayerInfo/Validate",
+                    dataType: "json",
+                    data: { SD_LAYER_ID: $("#SD_LAYER_ID").val(), SD_LAYER_FORMULA: $("#SD_LAYER_FORMULA").val() },
+                    success: function (data) {
+                        $.layerMsg(data.message, data.state);
+                    },
+                });
+            }
+        });
+    }
+
+    layui.use('form', function () {
+        var form = layui.form();
+        initSet();
+        showHideCode()
+        //initProcLog();
+        form.render();
+        form.on('submit(add)', function (data) {
+            //btn_validate();
+            $.formSubmit({
+                url: "/TestCenterSystem/LayerInfo/UpdateFormula",
+                data: data.field
+            });
+            return false;
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+
+    function searchDataItem(keywords) {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/Formula/GetListTree",
+            data: { projectId: 1, sdId: 1, kpiid: $("#KPI_ID").val(), dataitemid: treeNode.id },
+            dataType: "json",
+            success: function (data) {
+                initGrid();
+            },
+            error: function (data) {
+                $.layerMsg(data.msg, "warning");
+                initGrid();
+            }
+        });
+    }
+
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use('paging', function () {
+
+        paging = layui.paging();
+        var setting = {
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            check: {
+                enable: false,
+                chkStyle: "checkbox",
+                chkDisabledInherit: false
+            },
+            async: {
+                enable: true,
+                url: "/TestCenterSystem/Formula/GetListTree?keywords=" + $("#keyWord").val(),
+                dataType: "text",
+                autoParam: ["id", "name"]
+            }, callback: {
+                onAsyncSuccess: function (event, treeId, treeNode, msg) {
+                    var node = zTreeObj.getNodesByFilter(function (node) {
+                        return node.level == 1
+                    }, true);
+                    zTreeObj.selectNode(node);
+                    zTreeObj.setting.callback.onClick(event, zTreeObj.setting.treeId, node);
+                },
+                onDblClick: function (event, treeId, treeNode) {
+                    addParam(treeNode);
+                },
+                onClick: function (event, treeId, treeNode) { }
+            }
+        };
+
+        var zTreeObj = $.fn.zTree.init($("#treeItem"), setting);
+        initGrid();
+    });
+
+    function initTree() {
+        layui.config({
+            base: parent._baseUrl
+        }).use('paging', function () {
+
+            paging = layui.paging();
+            var setting = {
+                data: {
+                    simpleData: {
+                        enable: true
+                    }
+                },
+                check: {
+                    enable: false,
+                    chkStyle: "checkbox",
+                    chkDisabledInherit: false
+                },
+                async: {
+                    enable: true,
+                    url: "/TestCenterSystem/Formula/GetListTree?keywords=" + $("#keyWord").val(),
+                    dataType: "text",
+                    autoParam: ["id", "name"]
+                }, callback: {
+                    onAsyncSuccess: function (event, treeId, treeNode, msg) {
+                        var node = zTreeObj.getNodesByFilter(function (node) {
+                            return node.level == 1
+                        }, true);
+                        zTreeObj.selectNode(node);
+                        zTreeObj.setting.callback.onClick(event, zTreeObj.setting.treeId, node);
+                    },
+                    onDblClick: function (event, treeId, treeNode) {
+                        addParam(treeNode);
+                    },
+                    onClick: function (event, treeId, treeNode) { }
+                }
+            };
+
+            var zTreeObj = $.fn.zTree.init($("#treeItem"), setting);
+
+        });
+
+    }
+
+    function initBtnStatus() {
+        return;
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/KPI/BtnStatus",
+            data: { kpiId: $("#KPI_ID").val() },
+            dataType: "json",
+            success: function (data) {
+                if (data.PROC_STAT_CODE == '4') {
+
+                    $("#exe").text("已执行");
+                    //$("#excute").get(0).className = "layui-btn layui-btn-disabled layui-btn-small";
+                    //$("#excute").attr("disabled", "disabled");
+
+                    $("#lock").text("已锁定");
+                    //$("#lock").get(0).className = "layui-btn layui-btn-disabled layui-btn-small";
+                    //$('#lock').attr("disabled", "disabled");
+
+                } else if (data.PROC_STAT_CODE == '2') {
+                    $("#exe").text("已执行");
+                    //$("#excute").get(0).className = "layui-btn layui-btn-disabled layui-btn-small";
+                    //$('#excute').attr("disabled", "disabled");
+                } else {
+                    $("#exe").text("执行");
+                    //$("#excute").get(0).className = "layui-btn layui-btn-normal layui-btn-small";
+                    //$('#excute').attr("disabled", "disabled");
+
+                    $("#lock").text("锁定");
+                    //$("#lock").get(0).className = "layui-btn layui-btn-normal layui-btn-small";
+                    //$('#lock').attr("disabled", "disabled");
+                }
+            },
+            error: function (data) {
+                $.layerMsg(data.msg, "warning");
+            }
+        });
+    }
+
+    function initGrid() {
+        paging.init({
+            url: '/TestCenterSystem/LayerParam/GetList',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                layerId: $.getQueryString("primaryKey"),
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function () {
+
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+            }
+        });
+    }
+
+    function addParam(treeNode) {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/LayerParam/Add",
+            data: { layerId: $("#SD_LAYER_ID").val(), dataitemid: parseInt(treeNode.id) },
+            dataType: "json",
+            success: function (data) {
+                initGrid();
+            },
+            error: function (data) {
+                $.layerMsg(data.msg, "warning");
+                initGrid();
+            }
+        });
+    }
+
+    function btn_delete() {
+        var pids = $("#paramgridList").gridSelectedRowValue();
+        if (pids.length < 1) {
+            $.layerMsg("请勾选需要删除的选项。", "warning");
+            return;
+        }
+
+        $.layerConfirm({
+            content: "您已选中" + pids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.ajax({
+                    type: "GET",
+                    url: '/TestCenterSystem/LayerParam/Delete?primaryKey=' + pids[0],
+                    dataType: "json",
+                    success: function (data) {
+                        initGrid();
+                        $.layerMsg("删除成功！", 1);
+                    },
+                    error: function (data) {
+                        $.layerMsg("删除失败！", 1);
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+
+<script type="text/javascript">
+    //tab页切换
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form', 'layer', 'element', 'laydate'], function () {
+        var layer = parent.layer || layui.layer;
+        var form = layui.form();
+        var element = layui.element();
+        var laydate = layui.laydate;
+        paging = layui.paging();
+        initBtnStatus();
+        //给input赋值
+        $('#startDate').val(laydate.now(-30, 'YYYY-MM-DD'));
+        $('#endDate').val(laydate.now(0, 'YYYY-MM-DD'));
+        //initProcLog();
+
+    });
+    var firsttime = 0;
+    var note = "";
+
+    function guid() {
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+
+    function showHideCode() {
+        console.log("firsttime:" + firsttime)
+        //$("#showdiv").toggle();
+        if (firsttime > 0 && firsttime % 2 == 0) {
+            $("#show_more").text('收起');
+            $("#SD_EKPI_ALGO").text("逻辑描述：" + note);
+        } else {
+            $("#show_more").text('展开');
+            $("#SD_EKPI_ALGO").text("逻辑描述：" + note.substring(0, 60));
+        }
+        if (firsttime == 0) {
+            $.ajax({
+                type: "POST",
+                url: '/TestCenterSystem/LayerInfo/GetForm?primaryKey=' + $("#SD_LAYER_ID").val(),
+                dataType: "json",
+                success: function (data) {
+                    note = data.SD_LAYER_DESC;
+                    $("#SD_EKPI_ALGO").text("逻辑描述：" + note.substring(0, 60));
+                    firsttime = firsttime + 1;
+                },
+                error: function (data) {
+                }
+            });
+        }
+        firsttime = firsttime + 1;
+    }
+
+</script>
+
+<script>
+    //测试页面
+    function btn_test(btn_flag) {
+        if ($("#startDate").val() > $("#endDate").val()) {
+            top.layer.msg("开始时间大于结束时间！");
+            return;
+        }
+        $("#process_content").hide();
+        $("#log_content").hide();
+        $("#test_content").show();
+        paging.init({
+            url: '/TestCenterSystem/LayerInfo/Test',
+            elem: '#kpi-result-content',
+            tempElem: '#kpi-result-contentTpl',
+
+            params: {
+                SD_LAYER_ID: parseInt($("#SD_LAYER_ID").val()),
+                START_DATE: $("#startDate").val(),
+                END_DATE: $("#endDate").val(),
+                PATIENT_NO: $("#patientNo").val(),
+                FLAG: btn_flag
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 100,
+            },
+            success: function () {
+                if (btn_flag == "excute") {
+                    top.layer.msg("执行成功！！！");
+                } else if (btn_flag == "lock") {
+                    top.layer.msg("锁定成功！！！");
+                }
+                initBtnStatus();
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+                initBtnStatus();
+            }
+        });
+    }
+
+    function btn_lock(btn_flag) {
+        if (btn_flag == "lock" && $('#lock').hasClass('layui-btn-disabled')) {
+            return;
+        }
+        $.ajax({
+            type: "GET",  //提交方式
+            url: '/TestCenterSystem/LayerInfo/Lock',
+            data: {
+                SD_LAYER_ID: parseInt($("#SD_LAYER_ID").val()),
+                START_DATE: $("#startDate").val(),
+                END_DATE: $("#endDate").val(),
+                PATIENT_NO: $("#patientNo").val(),
+                FLAG: btn_flag
+            },
+
+            success: function (data) {
+                var obj = JSON.parse(data);
+                top.layer.msg(obj.message)
+                initBtnStatus();
+                refrenshParent();
+            },
+            fail: function (data) {
+                var obj = JSON.parse(data);
+                top.layer.msg(obj.message);
+                initBtnStatus();
+            }
+        });
+    }
+
+    function btn_excute(btn_flag) {
+        if ($("#startDate").val() > $("#endDate").val()) {
+            top.layer.msg("开始时间大于结束时间！");
+            return;
+        }
+        //$("#process_content").show();
+        $("#test_content").hide();
+        //$("#log_content").show();
+
+        //alert($.cookie("kpi_client_key"));
+        //if (btn_flag == "excute" && $('#excute').hasClass('layui-btn-disabled')) {
+        //    return;
+        //}
+        $.ajax({
+            type: "GET",  //提交方式
+            url: '/TestCenterSystem/LayerInfo/Excute',
+            data: {
+                SD_LAYER_ID: parseInt($("#SD_LAYER_ID").val()),
+                START_DATE: $("#startDate").val(),
+                END_DATE: $("#endDate").val(),
+                PATIENT_NO: $("#patientNo").val(),
+                FLAG: btn_flag,
+                CLIENT_KEY: $.cookie("kpi_client_key"),
+            },
+            success: function (data) {
+                var obj = JSON.parse(data);
+                top.layer.msg(obj.message)
+                initBtnStatus();
+                refrenshParent();
+            },
+            fail: function (data) {
+                var obj = JSON.parse(data);
+                top.layer.msg(obj.message);
+                initBtnStatus();
+            }
+        });
+    }
+
+    function btn_clear() {
+        $.ajax({
+            type: "GET",  //提交方式
+            url: '/TestCenterSystem/LayerInfo/Clear',
+            data: { primaryKey: parseInt($("#SD_LAYER_ID").val()) },
+            success: function (data) {
+                var obj = JSON.parse(data);
+                top.layer.msg(obj.message)
+                initBtnStatus();
+                refrenshParent();
+            },
+            fail: function (msg) {
+                top.layer.msg(msg);
+                initBtnStatus();
+            }
+        });
+    }
+
+    //执行结果导出
+    function btn_export() {
+        $.ajax({
+            type: "GET",  //提交方式
+            url: "/TestCenterSystem/LayerInfo/ExportResult",
+            data: { primaryKey: parseInt($("#SD_LAYER_ID").val()) },
+            success: function (obj) {
+                obj = JSON.parse(obj);
+                if (obj.title === null)
+                    $.layerMsg("层级管理执行结果导出失败！", 2);
+                else if (obj.data.length == 0) {
+                    $.layerMsg("没有数据可导！", 2);
+                }
+                else {
+                    $.JSONToExcelConvertor(obj.data, "层级管理_" + layerId + "_执行结果表", obj.title);
+                }
+            }
+        });
+    }
+
+</script>
+
+<script>
+    @*<script src="~/Scripts/jquery-1.6.4.min.js"></script>*@
+    //长连接客户端生成唯一Key
+    initKey();
+    function initKey() {
+        if ($.cookie('kpi_client_key') == null) {
+            var kpi_client_key = guid();
+            $.cookie('kpi_client_key', kpi_client_key, { expires: 999, path: '/' });
+        }
+        console.log('kpi_client_key:' + $.cookie('kpi_client_key'))
+    }
+    //layui进度条
+    layui.use('element', function () {
+        var $ = layui.jquery
+        , element = layui.element(); //Tab的切换功能，切换事件监听等，需要依赖element模块
+        // 触发事件进度状态长连接
+        $(function () {
+            var chat = $.connection.processHub;
+            chat.client.addNewMessageToPage = function (name, percent, title, note) {
+                var kpi_client_key = $.cookie("kpi_client_key")
+                console.log(percent);
+                if (name == kpi_client_key) {
+                    $("#process_content").show();
+                    $("#test_content").hide();
+                    $("#log_content").show();
+                    $("#exe").text("执行中");
+                    element.progress('kpi_progress', percent)
+                    var str = $('#process_note').val(); //先获取原有的值
+                    $('#process_note').val(note + "\n" + str); //拼接新值
+                    if (percent == "100%") {
+                        $("#exe").text("已执行");
+                    }
+                }
+            };
+            $.connection.hub.start().done(function () {
+            });
+        });
+    });
+</script>

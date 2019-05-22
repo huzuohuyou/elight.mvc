@@ -1,0 +1,178 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>字典汇总</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div class="layui-btn-group">
+                <button  class="layui-btn layui-btn-primary layui-btn-small" id="DataImport">
+                    <i class="fa fa-cloud-upload"></i>导      入
+                </button>
+                <button  class="layui-btn layui-btn-primary layui-btn-small" id="Export" onclick="DataExport()" >
+                    <i class="fa fa-sign-out"></i>导      出
+                </button>
+                <button  class="layui-btn layui-btn-primary layui-btn-small" onclick="DownloadTemplate()">
+                    <i class="fa fa-sign-out"></i>下载模板
+                </button>
+            </div>
+            <blockquote class="layui-elem-quote" style="margin-top:10px; padding:6px;border-left:5px solid #1E9FFF">
+                药品字典统计
+            </blockquote>
+            <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:10px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+            <blockquote class="layui-elem-quote" style="margin-top:10px;padding:6px;border-left:5px solid #1E9FFF">
+                检查字典统计
+            </blockquote>
+            <table id="gridList1" class="layui-table" lay-filter="gridData" style="margin-top:10px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+            <blockquote class="layui-elem-quote" style="margin-top:10px;padding:6px;border-left:5px solid #1E9FFF">
+                检验字典统计
+            </blockquote>
+            <table id="gridList2" class="layui-table" lay-filter="gridData" style="margin-top:10px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js?v=10"></script>
+<script src="~/Content/jquery/ajaxfileupload.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+
+
+<script type="text/javascript">
+    var layer;
+    var table;
+    layui.use(['table', 'layer', 'laypage', 'upload'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var upload = layui.upload;
+        var primaryKey = $.getQueryString("primaryKey");
+        //var form = layui.form;
+        $("#toolbar").authorizeButton();
+        initGrid();
+        upload.render({
+            elem: '#DataImport' //绑定元素
+        , url: '/TestCenterSystem/UnionDictionary/InsertDictionaryData' //上传接口
+        , method: 'post'
+        , accept: 'file' //普通文件
+        , done: function (res) {
+            if (res.Item1 == "catch") {
+                $.layerMsg(res.Item2, "error");
+            }
+            else if (res.Item1 == "error") {
+                layer.open({
+                    type: 2 //此处以iframe举例
+                   , title: '导入结果异常信息'
+                   , area: ['670px', '530px']
+                   , shade: 0
+                   , content: "/TestCenterSystem/UnionDictionary/ErrorDetail?data=" + res.Item2
+                   , btn: []
+                   , yes: function () {
+                   }
+                });
+            }
+            else {
+                $.layerMsg("文件导入成功！", 1);
+            }
+            //上传完毕回调
+            initGrid();
+        }
+        , error: function (data, status, e) {
+            //请求异常回调
+        }
+        });
+    });
+    //初始化表格
+    function initGrid() {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/UnionDictionary/GetDrugList',
+            page: false,
+            height: 20,
+            cols: [[
+                { field: 'MEDICINAL_TYPE_COUNT', title: '药品类别(个)', width: 120, align: 'center' },
+                { field: 'CHYMIST_NAME_COUNT', title: '化学名(个)', width: 120, align: 'center' },
+                { field: 'MEDICINAL_COUNT', title: '药品数量(个)', width: 120, align: 'center' },
+                { field: 'KEYWORD_COUNT', title: '关键词(个)', width: 120, align: 'center' }
+
+            ]],
+            done: function () {
+            }
+        });
+        table.render({
+            id: 'grid1',
+            elem: '#gridList1',
+            url: '/TestCenterSystem/UnionDictionary/GetCheckTestList?type=2',
+            page: false,
+            height: 200,
+            cols: [[
+              { field: 'CHECK_TYPE_COUNT', title: '检查类别(个)', width: 120, align: 'center' },
+                { field: 'CHECK_ITEM_COUNT', title: '检查项(个)', width: 120, align: 'center' }
+            ]],
+            done: function () {
+            }
+        });
+        table.render({
+            id: 'grid2',
+            elem: '#gridList2',
+            url: '/TestCenterSystem/UnionDictionary/GetCheckTestList?type=3',
+            page: false,
+            height: 200,
+            cols: [[
+                { field: 'TEST_TYPE_COUNT', title: '检验类别(个)', width: 120, align: 'center' },
+                { field: 'TEST_ITEM_COUNT', title: '检验项(个)', width: 120, align: 'center' }
+            ]],
+            done: function () {
+            }
+        });
+    }
+
+    function DataExport()
+    {
+        $.formSubmit({
+            url: "/TestCenterSystem/UnionDictionary/ExportDictTemplate",
+            close: false,
+            async: true,
+            showMsg: false,
+            success: function (obj) {
+                var a = document.createElement('a');
+                a.href = obj;
+                a.click();
+            }
+        });
+    }
+    function DownloadTemplate()
+    {
+        var a = document.createElement('a');
+        a.href = '../../Templates/字典模版.xlsx';
+        a.click();
+    }
+
+</script>
+<script>
+    var table;
+</script>

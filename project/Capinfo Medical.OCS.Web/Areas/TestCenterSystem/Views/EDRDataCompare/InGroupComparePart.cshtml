@@ -1,0 +1,48 @@
+﻿@{
+    Layout = null;
+}
+
+<section class="json">
+    <div class="areas" style="display: none;">
+        <textarea id="ingroup_value_json" class="editing"></textarea>
+        <pre class="rendered"><code></code></pre>
+        <div class="drop">DROP JSON HERE</div>
+    </div>
+
+    <div class="error">
+        There was an error parsing this JSON. If you're sure this JSON is valid, please
+        <a class="report" target="_blank"
+           href="https://github.com/konklone/json/issues/new">
+            file an issue
+        </a>.
+        You can
+        <a class="save" href="#">create a permalink to the error</a>
+        any time.
+    </div>
+</section>
+
+<section class="csv" style="margin-top:0px;height: 90%;">
+    <p>
+        <span class="rendered">
+            结论：<label id="lbCDRName1"></label> 对应表数据共 <label id="lbCDRName1Count"></label>  条， <label id="lbCDRName2"></label> 对应表数据共 <label id="lbCDRName2Count"></label> 条，相同数据共 <label id="lbSameDataCount"></label> 条。下面表格将展示部分数据 .
+
+            <a download="result.csv" href="#" class="download" style="color:#428bca;" onmouseover="this.style.textDecoration = 'underline'" onmouseout="this.style.textDecoration='none'">
+                下载整个CSV文件
+            </a> .
+            <span class="show-render-all">
+                <a href="#" class="render-all" style="color:#428bca;" onmouseover="this.style.textDecoration = 'underline'" onmouseout="this.style.textDecoration='none'" onclick="renderAll()">显示所有 <span class="rows count"></span> 行</a> .
+            </span>
+        </span>
+
+        <span class="editing">
+            数据组装中，请耐心等待...
+        </span>
+    </p>
+
+    <div class="areas" style="height: 90%;">
+        <textarea class="editing" readonly></textarea>
+        <div class="table rendered" style="margin-bottom:0px">
+            <table style="width: 100%;" id="tbCpatDetailOfE"></table>
+        </div>
+    </div>
+</section>

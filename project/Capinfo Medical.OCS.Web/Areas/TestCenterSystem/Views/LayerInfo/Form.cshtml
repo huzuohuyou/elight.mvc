@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">层级编码</label>
+            <div class="layui-input-inline">
+                <input type="hidden" name="SD_LAYER_ID" />
+                <input type="hidden" name="SD_LAYER_FORMULA" />
+                <input type="hidden" name="SD_ID" />
+                <input type="hidden" name="SD_CODE" />
+                <input type="hidden" name="CREATE_USER_ID" />
+                <input type="hidden" name="CREATE_USER_DATE" />
+                <input type="text" name="SD_LAYER_CODE" lay-verify="required" maxlength="20" placeholder="请输入指标代码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">层级名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_LAYER_NAME" lay-verify="name" maxlength="200" placeholder="请输入指标名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline" style="display:none">
+            <label class="layui-form-label">有效标志</label>
+            <div class="layui-input-inline">
+                <input type="text" name="VALID_FLAG" maxlength="60" placeholder="请输入指标名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">层级简称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="SD_LAYER_ALIAS" lay-verify="name" maxlength="200" placeholder="请输入指标简称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">排序码</label>
+            <div class="layui-input-inline">
+                <input type="text" name="ORDER_NO" lay-verify="ORDER_NO" maxlength="60" placeholder="顺序号" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">父级</label>
+            <div class="layui-input-block"> @*layui-input-inline*@
+                <select name="LAYER_PARIENT_ID">
+                    <option value="">请选择父级</option>
+                    <option value="">无</option>
+                    @{
+                        if (ViewBag.ParentInfo != null)
+                        {
+                            var list = ViewBag.ParentInfo;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].SD_LAYER_ID">@list[i].SD_LAYER_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">评价指标</label>
+            <div class="layui-input-inline">
+                <select lay-ignore name="KPI" class="select2" id="KPI" multiple="multiple" style="width: 514px;"></select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">逻辑描述</label>
+        <div class="layui-input-inline" style="width: 514px;">
+            <textarea name="SD_LAYER_DESC" @*lay-verify="required"*@ placeholder="请输入内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use('form', function () {
+        var form = layui.form();
+        var primaryKey = $.getQueryString("primaryKey");
+
+        $("#KPI").bindSelect({
+            url: "/TestCenterSystem/LayerInfo/GetListTreeSelect?primaryKey=" + primaryKey,
+            //title: '请选择KPI'
+        });
+
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/LayerInfo/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+        //initOrders();
+        //自定义验证规则
+        form.verify({
+            code: function (value) {
+                if ($.trim(value).length == 0)
+                    return '层级编码不能为空';
+                var _length = getStringLen(value);
+                if (_length > 20) {
+                    return '层级编码不能超过20个字符';
+                }
+
+                //var regex = /^[a-zA-Z0-9_]{1,}$/;
+                //var objExp = new RegExp(regex);
+                //if (objExp.test(value) != true)
+                //    return '层级编码只能包含字母、数字和下划线';
+            },
+            name: function (value) {
+                if ($.trim(value).length == 0)
+                    return '不能为空';
+                var _length = getStringLen(value);
+                if (_length > 200) {
+                    return '不能超过200个字符';
+                }
+            },
+            ORDER_NO: function (value) {
+                if ($.trim(value).length == 0)
+                    return '序号不能为空';
+                var regex = /^[0-9]{1,}$/;
+                var objExp = new RegExp(regex);
+                if (objExp.test(value) != true)
+                    return '序号只能包含数字';
+                if ($.trim(value) < 0)
+                    return '序号不能小于0';
+            }
+        });
+        form.render();
+
+        function getStringLen(Str) {
+            var i, len, code;
+            if (Str == null || Str == "") return 0;
+            len = Str.length;
+            for (i = 0; i < Str.length; i++) {
+                code = Str.charCodeAt(i);
+                if (code > 255) { len++; }//判断非常规字符
+            }
+            return len;
+        }
+
+        form.on('submit(add)', function (data) {
+            if ($("#KPI").val() != null)
+                data.field.EKPI_IDS = $("#KPI").val().join();
+            $.formSubmit({
+                url: "/TestCenterSystem/LayerInfo/Form",
+                data: data.field
+            });
+            return false;
+        });
+    });
+
+    function initOrders() {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/KPI/OrderNo",
+            data: {
+            },
+            success: function (data) {
+                var length = JSON.parse(data).count;
+
+                for (var i = 0; i < length; i++) {
+                    $("div#ORDER_NO dl").append("<option value=" + " (i + 1)" + ">" + "(i + 1)" + "</option>");
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,176 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />  
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>KPI列表</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .breathe-btn {
+            position: relative;
+            border: 0px solid #2b92d4;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,.3);
+            overflow: hidden;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#6cc3fe), to(#21a1d0));
+            -webkit-animation-timing-function: ease-in-out;
+            -webkit-animation-name: breathe;
+            -webkit-animation-duration: 2700ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-direction: alternate;
+        }
+
+        @@-webkit-keyframes breathe {
+            0% {
+                opacity: .2;
+                box-shadow: 0 1px 2px rgba(255,255,255,0.1);
+            }
+
+            100% {
+                opacity: 1;
+                
+                box-shadow: 0 1px 30px rgba(59,255,255,1);
+            }
+        }
+    </style>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            height: 30px;
+            width: 120px;
+            line-height: 30px;
+            line-height: 36px\9;
+            border: 1px solid #e6e6e6;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<!--内容模板-->
+<script type="text/html" id="barDemo">
+   
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="查看" lay-event="detail"><i class="fa fa-eye" style="margin-right:0px;"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="编辑" lay-event="edit"><i class="layui-icon" style="margin-right:0px;"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="配置" lay-event="manage"><i class="layui-icon" style="margin-right:0px;">&#xe620;</i></a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" style="margin-left:2px" title="删除" lay-event="del"><i class="layui-icon" style="margin-right:0px;"></i></a>
+
+</script>
+
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = 'ORDER_NO';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#CodeOrName').bindEnterEvent(btn_searchKeyWord);
+        initKPICompareGrid();
+        table.on('tool(gridData)', function (obj) {
+            console.log(obj.data);
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                btn_detail(data.SD_EKPI_ID);
+            } else if (obj.event === 'del') {
+                btn_delete(data.SD_EKPI_ID);
+            } else if (obj.event === 'edit') {
+                btn_edit(data.SD_EKPI_ID);
+            } else if (obj.event === 'manage') {
+                btn_configure(data.SD_EKPI_ID, data.SD_EKPI_CODE, data.SD_EKPI_NAME, data.VALUE_TABLE_ID);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            console.log("limit:" + $("[href]").val())
+            field = obj.field;
+            type = obj.type;
+        });
+    });
+   
+    
+    //初始化表格
+    function initKPICompareGrid() {
+        alert('jhah')
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/EDRDataCompare/CompareKpi?leftCdrId=' + $("#CDRName1").val() + '&rightCdrId=' + $("#CDRNames2").val(),
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { field: 'KPI_NAME', title: '指标名称', width: 300, },
+                { field: 'LEFT_FENZI', title: '左分子', width: 100, sort: true },
+                { field: 'LEFT_FENMU', title: '左分母', width: 100, sort: true, toolbar: '#SD_EKPI_TYPE' },
+                { field: 'LEFT_BILV', title: '左比率', width: 120, align: 'center', sort: true, toolbar: '#VALID_FLAG' },
+                { field: 'RIGHT_FENZI', title: '右分子', width: 100, align: 'center', toolbar: '#IsExecuted' },
+                { field: 'RIGHT_FENMU', title: '右分母', width: 100, align: 'center', sort: true, toolbar: '#IsPositive' },
+                { field: 'RIGHT_BILV', title: '右比率', width: 100, align: 'center' },
+                { field: 'RESULT', title: '结果', width: 100, align: 'center' },
+                { fixed: 'right', title: '操作', width: 220, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+
+    //导出汇总
+    function btn_export_all_union() {
+
+        $.layerOpen({
+            id: "edit",
+            title: "导出汇总",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAllKPIValueUnion",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+
+    }
+    
+</script>

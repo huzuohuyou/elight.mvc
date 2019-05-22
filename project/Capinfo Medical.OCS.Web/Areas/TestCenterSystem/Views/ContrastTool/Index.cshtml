@@ -1,0 +1,324 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>KPI列表</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .breathe-btn {
+            -webkit-animation-direction: alternate;
+            -webkit-animation-duration: 2700ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-name: breathe;
+            -webkit-animation-timing-function: ease-in-out;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#6cc3fe), to(#21a1d0));
+            border: 0px solid #2b92d4;
+            border-radius: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+            color: #fff;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            text-align: center;
+        }
+
+        @@-webkit-keyframes breathe {
+            0% {
+                box-shadow: 0 1px 2px rgba(255, 255, 255, 0.1);
+                opacity: .2;
+            }
+
+            100% {
+                box-shadow: 0 1px 30px rgba(59, 255, 255, 1);
+                opacity: 1;
+            }
+        }
+    </style>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            background-color: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 2px;
+            height: 30px;
+            line-height: 30px;
+            line-height: 36px\9;
+            width: 120px;
+        }
+
+        .layui-elem-quote {
+            background-color: #f2f2f2;
+            border-left: 5px solid #1E9FFF;
+            border-radius: 0 2px 2px 0;
+            line-height: 22px;
+            margin-top: 10px;
+            padding: 6px;
+        }
+
+        /*.show .showitem {
+            background: #0CF;
+            border-radius: 15px;
+            color: #fff;
+            display: block;
+            height: 42px !important;
+            margin: 10px 0;
+            padding: 10px;
+            width: 150px !important;
+        }*/
+    </style>
+
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            @*文件上传*@
+            <blockquote class="layui-elem-quote">文件上传</blockquote>
+            <div class="layui-upload-drag" id="uploadLeft">
+                <i class="layui-icon"></i>
+                <p>
+                    <br>点击上传，或将文件拖拽到此处
+                </p>
+            </div>
+            <div class="layui-upload-drag" id="uploadRight" style="margin-left: 40px;">
+                <i class="layui-icon"></i>
+                <p>
+                    <br>点击上传，或将文件拖拽到此处
+                </p>
+            </div>
+            @*字段映射*@
+            <blockquote class="layui-elem-quote">字段比较映射</blockquote>
+            <div id="colmap"></div>
+            @*对比结果*@
+            <blockquote class="layui-elem-quote">对比结果</blockquote>
+            <fieldset class="layui-elem-field layui-field-title"  style="margin:0;">
+                <legend><span id="ltitle"></span>&nbsp;:&nbsp;<span id="rtitle"></span></legend>
+            </fieldset>
+            <table class="layui-table" id="dtResult" lay-filter="dtResultTool"></table>
+            
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+
+<link href="~/Content/canvasline/css/base.css" rel="stylesheet" />
+<link href="~/Content/canvasline/css/onLine.css" rel="stylesheet" />
+<script src="~/Content/canvasline/js/onLine.js"></script>
+
+@*toolbar *@
+<script type="text/html" id="itemBar">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left: 2px" lay-event="detail">查看</a>
+</script>
+@*toolbar end*@
+
+
+<script type="text/javascript">
+    var canvasArray = new Array('', '');
+    var tbResult;
+    var from;
+
+    //绑定字段比较映射
+    function bindCanvas() {
+        var colmap = $('#colmap');
+        var divCanvasline = $([
+            '<div id="canvasline" data-pair="5">',
+            '<div class="show cb">',
+            '<div class="tools layui-form">',
+            '<div class="layui-inline">',
+            '<button type="button" class="layui-btn layui-btn-normal" id="getPair">开始比较</button>',
+            '<button class="layui-btn layui-btn-primary goBackBtn">后退</button>',
+            '<button class="layui-btn layui-btn-primary resetCanvasBtn">重置</button></div>',
+            '<div class="layui-inline"><label class="layui-form-label" style="width: 60px;">关联字段</label></div>',
+            '<div class="layui-inline"><select id="lefitSelect" lay-verify="" ><option value="">请选择</option></select></div>',
+            '<div class="layui-inline">&nbsp;-&nbsp;</div>',
+            '<div class="layui-inline"><select id="rightSelect" lay-verify=""><option value="">请选择</option></select></div>',
+            '</div>',
+            '<div class="showleft" id="showleft"><!--左侧--></div>',
+            '<div class="showright" id="showright"><!--右侧--></div>',
+            '<canvas class="canvas"></canvas>',
+            '<canvas class="backcanvas"></canvas>',
+            '</div></div>'
+        ].join(''));
+        colmap.html(divCanvasline);
+
+        for (var i = 0; i < canvasArray.length; i++) {
+            var cols = canvasArray[i].split('|');
+            var spans = new Array();
+            var select = new Array();
+
+            for (var j = 0; j < cols.length; j++) {
+                if (cols[j] != '') {
+                    spans[j] = '<span class="showitem" data-id="' + cols[j] + '">' + cols[j] + '</span>';
+                    select[j] = '<option value="' + cols[j] + '">' + cols[j] + '</option>';
+                }
+            }
+            var selectL = $('#lefitSelect');
+            var selectR = $('#rightSelect');
+
+            if (i === 0) {
+                var sleft = $('#showleft');
+                sleft.append(spans.join(''));
+
+                //selectL.append(defaultOption);
+                selectL.append(select.join(''));
+            }
+            if (i === 1) {
+                var sright = $('#showright');
+                sright.append(spans.join(''));
+
+                //selectR.append(defaultOption);
+                selectR.append(select.join(''));
+            }
+        }
+        from.render('select');
+
+        if (canvasArray[0] != '' && canvasArray[1] != '') {
+            var obj = $("#canvasline");
+            var size = obj.size();
+            for (var i = 0; i < size; i++) {
+                obj.eq(i).onLine({
+                    regainCanvas: false
+                });
+            }
+        }
+    }
+    //开始比较
+    function compare(cols) {
+        if (cols.length==0) {
+            layer.msg('请关联需要比较的列。');
+            return;
+        }
+        var lsval = $('#lefitSelect').val();
+        var rsval = $('#rightSelect').val();
+
+        if ((lsval === '' && rsval !== '') || (lsval !== '' && rsval === '')) {
+            layer.msg('关联字段只能组对出现。');
+            return;
+        }
+
+        $.ajax({
+            url: "/TestCenterSystem/ContrastTool/ComparisonColumn",
+            data: { cols: cols, lsCol: lsval, rsCol: rsval },
+            type: "post",
+            dataType: "json",
+            async: true,
+            beforeSend: function(res) {
+                layer.load();
+            },
+            success: function(data) {
+                layer.closeAll('loading'); //关闭loading
+                showComparisonResult(data);
+            },
+            complete: function(XHR, TS) {
+                layer.closeAll('loading'); //关闭loading
+            }
+        });
+    }
+
+    
+    //对比结果
+    function showComparisonResult(data) {
+        tbResult.render({
+            elem: '#dtResult',
+            cols: [
+                [
+                    { field: 'col1', title: '比对列', align: 'center', width: 240 },
+                    { field: 'col2', title: '左列独有', align: 'center', width: 120 },
+                    { field: 'col3', title: '交集', align: 'center', width: 120 },
+                    { field: 'col4', title: '右列独有', align: 'center', width: 120 },
+                    { field: 'col5', title: '值相同', align: 'center', width: 120 },
+                    { field: 'col6', title: '值差异', align: 'center', width: 120 },
+                    { fixed: 'right', title: '操作', width: 100, align: 'center', toolbar: '#itemBar' }
+                ]
+            ],
+            data: data == null ? [] : eval('(' + data.data + ')')
+        });
+    }
+
+    //文件上传
+    layui.use(['form', 'upload', 'table', 'layer'],
+        function() {
+            var upload = layui.upload;
+            from = layui.form;
+            tbResult = layui.table;
+            //upload
+            upload.render({
+                elem: '#uploadLeft',
+                url: '/TestCenterSystem/ContrastTool/GetXlsx',
+                accept: 'file',
+                exts: 'xlsx|xls|csv',
+                //size: 51200, //限制文件大小，单位 KB
+                data: { id: 1 },
+                before: function(obj) {
+                    layer.load();
+                },
+                done: function(res) {
+                    if (res.code === 0) { //上传成功
+                        layer.closeAll('loading'); //关闭loading
+                        $('#uploadLeft').find('p').html(res.filename + '<br>点击上传，或将文件拖拽到此处');
+                        $('#ltitle').html(res.filename);
+                        canvasArray[0] = res.cols;
+                        bindCanvas();
+                    } else {
+                        layer.closeAll('loading'); //关闭loading
+                        layer.msg('文件解析错误，请核对文件格式后重新上传');
+                    }
+                }
+            });
+            //upload
+            upload.render({
+                elem: '#uploadRight',
+                url: '/TestCenterSystem/ContrastTool/GetXlsx',
+                accept: 'file',
+                exts: 'xlsx|xls|csv',
+                //size: 51200, //限制文件大小，单位 KB
+                data: { id: 2 },
+                before: function(obj) {
+                    layer.load();
+                },
+                done: function(res) {
+                    if (res.code === 0) { //上传成功
+                        layer.closeAll('loading'); //关闭loading
+                        $('#uploadRight').find('p').html(res.filename + '<br>点击上传，或将文件拖拽到此处');
+                        $('#rtitle').html(res.filename);
+                        canvasArray[1] = res.cols;
+                        bindCanvas();
+                    } else {
+                        layer.closeAll('loading'); //关闭loading
+                        layer.msg('文件解析错误，请核对文件格式后重新上传');
+                    }
+                }
+            });
+
+            //显示结果
+            showComparisonResult(null);
+            //工具
+            tbResult.on('tool(dtResultTool)',
+                function(obj) {
+                    var data = obj.data;
+                    if (obj.event == 'detail') {
+                        $.layerOpen({
+                            id: "detail",
+                            title: "查看详情",
+                            width: "970px",
+                            height: "630px",
+                            content: "/TestCenterSystem/ContrastTool/ValueDetail?cols=" + data.col1,
+                            btn: null
+                        });
+                    }
+                });
+        });
+</script>

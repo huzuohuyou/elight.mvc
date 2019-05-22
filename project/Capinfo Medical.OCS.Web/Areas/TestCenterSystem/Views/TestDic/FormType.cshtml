@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>药品字典</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .breathe-btn {
+            position: relative;
+            border: 0px solid #2b92d4;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,.3);
+            overflow: hidden;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#6cc3fe), to(#21a1d0));
+            -webkit-animation-timing-function: ease-in-out;
+            -webkit-animation-name: breathe;
+            -webkit-animation-duration: 2700ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-direction: alternate;
+        }
+
+        @@-webkit-keyframes breathe {
+            0% {
+                opacity: .2;
+                box-shadow: 0 1px 2px rgba(255,255,255,0.1);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 1px 30px rgba(59,255,255,1);
+            }
+        }
+    </style>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            height: 30px;
+            width: 120px;
+            line-height: 30px;
+            line-height: 36px\9;
+            border: 1px solid #e6e6e6;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="panel animated fadeIn">
+         
+            <div class="layui-tab layui-tab-brief" lay-filter="demo">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">检验类别</li>
+                    <li>细分类别</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        @*搜索条件+table*@
+                        <div id="toolbar" class="elight-table-toolbar">
+                            <div>
+                                <button onclick="btn_add()" class="layui-btn layui-btn-primary layui-btn-small" style="margin-bottom:10px">
+
+                                    <i class="fa fa-plus-square-o" aria-hidden="true"></i>添加
+                                </button>
+                            </div> 
+                        </div>
+                        <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+                            <thead>
+                                <tr></tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="layui-tab-item">
+                        @*搜索条件+table*@
+                        <div id="toolbarKW" class="elight-table-toolbar">
+                            <div >
+                               <button onclick="btn_addKW()" class="layui-btn layui-btn-primary layui-btn-small" style="margin-bottom:10px">
+                                <i class="fa fa-plus-square-o" aria-hidden="true"></i>添加
+                                </button>
+                            </div>  
+                        </div>
+                        <table id="gridListKW" class="layui-table" lay-filter="gridDataKW" style="margin-top:0px;width:100%">
+                            <thead>
+                                <tr></tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+         
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<!--内容模板-->
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+</script>
+
+<script type="text/html" id="barDemoKW">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="editKW">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="delKW">删除</a>
+</script>
+
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = 'TERM_TYPE';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage', 'element'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        $("#toolbarKW").authorizeButton();
+        //搜索
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#termName').bindEnterEvent(btn_searchKeyWord);
+        initGrid();
+        table.on('tool(gridData)', function (obj) {
+            var data = obj.data;
+            if (obj.event == 'del') {
+                btn_delete(data.TERM_CAT_CODE);
+            } else if (obj.event == 'edit') {
+                btn_edit(data.TERM_CAT_CODE);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            console.log("limit:" + $("[href]").val())
+            field = obj.field;
+            type = obj.type;
+            //initGrid();
+        });
+
+        $('#btnSearchKeyWord').click(btn_searchKeyWordKW);
+        $('#keyWord').bindEnterEvent(btn_searchKeyWordKW);
+        initGridKW();
+        table.on('tool(gridDataKW)', function (obj) {
+            var data = obj.data;
+            if (obj.event == 'editKW') {
+                btn_editKW(data.TERM_CAT_CONF_ID);
+            } else if (obj.event == 'delKW') {
+                console.log(obj);
+                btn_deleteKW(data.TERM_CAT_CONF_ID);
+            }
+        });
+        table.on('sort(gridDataKW)', function (obj) {
+            console.log("limit:" + $("[href]").val())
+            field = obj.field;
+            type = obj.type;
+        });
+        //element = layui.element; //元素操作
+        ////监听Tab切换
+        //element.on('tab(demo)', function (data) {
+        //    console.log(data);
+        //});
+    });
+
+    //初始化表格
+    function initGrid() {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/TestDic/CategoryGetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'TERM_CAT_CODE', style: 'display:none' },
+                { field: 'TERM_CAT_NAME', title: '检验类别', width: 450, align: 'left', },
+                { fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                btn_edit
+                currentPage = curr;
+                totalCount = count;
+               
+            }
+        }); 
+    }
+
+    //初始化匹配细分表格
+    function initGridKW() {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'gridKW',
+            elem: '#gridListKW',
+            url: '/TestCenterSystem/TestDic/GetListSub?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'TERM_CAT_CONF_ID', style: 'display:none' },
+                { field: 'TERM_CAT_NAME', title: '检验类别', width: 200, align: 'left', },
+                { field: 'TERM_CAT1_NAME', title: '细分类别', width: 200, align: 'left' },
+                { fixed: 'right', title: '操作', width: 200, align: 'center', toolbar: '#barDemoKW' }
+            ]],
+            done: function (res, curr, count) {
+                btn_editKW
+                currentPage = curr;
+                totalCount = count; 
+            }
+           
+        });
+        //刷新父页面
+       // refrenshParent();
+    }
+    //搜索字典关键词
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("#termName").val() + ";" + $("#itemTypeMedicine").val()
+            },
+            curr: 1
+        });
+    }
+
+    //搜索关键词
+    function btn_searchKeyWordKW() {
+        table.reload('gridKW', {
+            where: {
+                keyWord: $("#keyWord").val() + ";" + $("#itemTypeMedicineKW").val()
+            },
+            curr: 1
+        });
+    }
+
+    //添加
+    function btn_add() {
+        //console.log(11)
+        $.layerOpen({
+            id: "addTestCat",
+            title: "添加检验类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/TestDic/CategoryFrom", 
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                initGrid();
+            }
+        });
+    }
+    //编辑
+    function btn_edit(id) {
+        $.layerOpen({
+            id: "editTestCat",
+            title: "修改检验类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/TestDic/CategoryFrom?primaryKey=" + id,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                initGrid();
+            }
+        });
+    }
+    //删除
+    function btn_delete(id) {
+        $.layerConfirm({
+            content: "确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: "/TestCenterSystem/TestDic/CategoryDelete?primaryKey=" + id,
+                    close: false,
+                    success: function () {
+                        //刷新父窗体
+                        refrenshParent();
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+    //类别维护
+    function btn_cateMain() {
+        $.layerOpen({
+            id: "cateMain",
+            title: "类别维护",
+            width: "770px",
+            height: "590px",
+            content: "/TestCenterSystem/TestDic/IndexCate",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                //刷新父窗体
+                refrenshParent();
+                initGrid();
+            }
+        });
+    }
+
+
+    //添加细分类别
+    function btn_addKW() {
+        console.log(113)
+        $.layerOpen({
+            id: "addKW1",
+            title: "添加细分类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/TestDic/Form1",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                initGridKW();
+            }
+        });
+    }
+    //编辑细分类别
+    function btn_editKW(id) {
+        $.layerOpen({
+            id: "editKW",
+            title: "修改细分类别",
+            width: "590px",
+            height: "300px",
+            content: "/TestCenterSystem/TestDic/Form1?primaryKey=" + id,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit1').click();
+                //刷新父窗体
+                refrenshParent();
+                initGridKW();
+            }
+        });
+    }
+    //删除细分类别
+    function btn_deleteKW(id) {
+        $.layerConfirm({
+            content: "确定删除吗？", 
+            callback: function () {
+                $.formSubmit({
+                    url: "/TestCenterSystem/TestDic/DeleteSub?primaryKey=" + id,
+                    close: false,
+                    success: function () {
+                        //刷新父窗体
+                        refrenshParent();
+                        initGridKW();
+                    }
+
+                });
+            }
+        });
+    }
+    //根据指定url刷新页面
+    function refrenshParent() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/TestDic/Index") > 0) {
+                parent[i].initGrid('TERM_CAT_CONF_ID', 'desc');
+                break;
+            }
+        }
+    }
+</script>

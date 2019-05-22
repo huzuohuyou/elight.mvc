@@ -1,0 +1,194 @@
+﻿@{
+    ViewBag.Title = "展示参数";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>展示参数</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="~/Content/jquery/jquery.cookie.js"></script>
+    <script src="~/Content/jquery/jquery.md5.js"></script>
+
+</head>
+<body>
+    <div class="panel animated fadeIn" style="padding-top: 0px;margin: 0px;">
+        <div style="width: 97%; margin: 0 auto; margin-top: 10px;">
+            <div class="header" style="height: 40px;">
+                <div class="layui-inline" style="float: right;">
+                    <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-sm" style="height: 30px;">
+                        <i class="layui-icon">&#xe615;</i>
+                    </button>
+                </div>
+                <div class="layui-inline" style="float: right;">
+                    <input type="text" id="inputName" placeholder="请输入数据项编码、名称或最后操作人" autocomplete="off" class="layui-input"
+                           style="width: 240px; height: 30px;" />
+                </div>
+            </div>
+            <table id="item_Tab" class="layui-table" lay-filter="item_Tab" style="margin-top: 0px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+            <div class="layui-form-item" style="display: none">
+                <div class="layui-input-inline">
+                    <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+@*<script type="text/html" id="isExecuted">
+        状态
+        {{# if(d.IsExecuted==1){ }}未执行
+        {{# }else if(d.IsExecuted==2){ }}已执行
+        {{# }else if(d.IsExecuted==5){ }}可执行
+        {{# }else if(d.IsExecuted==3){ }}已清空
+        {{# }else if(d.IsExecuted==4){ }}已锁定
+        {{# }else{ }}[未指定]
+        {{# } }}
+    </script>*@
+<script type="text/html" id="smark">
+    @*有效标志*@
+    {{# if(d.VALID_FLAG==1){ }}
+    <span id="{{d.SD_ITEM_ID}}" class="layui-badge layui-bg-green">有效</span>
+    {{# }else if(d.VALID_FLAG==0){ }}
+    <span id="{{d.SD_ITEM_ID}}" class="layui-badge layui-bg-gray">无效</span>
+    {{# } }}
+</script>
+<script type="text/html" id="state">
+    {{# if(d.PROC_STAT_CODE==1){ }} 未执行
+    {{# }else if(d.PROC_STAT_CODE==2){ }}已执行
+    {{# }else if(d.PROC_STAT_CODE==3){ }}已清空
+    {{# }else if(d.PROC_STAT_CODE==4){ }}已锁定
+    {{# } }}
+</script>
+<script type="text/html" id="operationItem">
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="详情" lay-event="detail"><i class="fa fa-eye" style="margin-right:0px;"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="添加" lay-event="addKpi"><i class="layui-icon">&#xe608;</i></a>
+</script>
+<script>
+    var layer = null;
+    var table = null;
+    var form = null;
+
+    var kpiId = null;
+    var currPage = null;
+
+    var sdItemId = null;
+    var sdItemName = null;
+
+    var currentPage;
+    var totalCount;
+    layui.use(['table', 'layer', 'form'], function () {
+        table = layui.table;
+        layer = layui.layer;
+        form = layui.form;
+        $('#btnSearch').click(function () {
+            search();
+        });
+        $('#inputName').bindEnterEvent(search);
+        kpiId = $.getQueryString('kpiId');
+        table.on('tool(item_Tab)', function (obj) {
+            var data = obj.data;
+            var event = obj.event;
+            if (event === 'detail') {
+                detail(data.SD_ITEM_ID);
+            } else if (event === 'addKpi') {
+                var _this = this;
+                addKpi(data, _this);
+            }
+        });
+        //form.on('submit(add)', function (data) {
+        //    for (var i = 0; i < parent.length; i++) {
+        //        if (parent[i].document.URL.indexOf("/TestCenterSystem/KPI/Form") > 0) {
+        //            parent[i].find("div.show-param").find("input.show-param-sdItemId").val(sdItemId);
+        //            parent[i].find("div.show-param").find("input.show-param-sdItemId").text(sdItemName);
+        //            parent[i].find("div.show-param").find("div.item-desc").show();
+        //            break;
+        //        }
+        //    }
+        //    return false;
+        //});
+
+        initParam();
+    });
+
+    function initParam() {
+        table.render({
+            id: "grid",
+            elem: '#item_Tab',
+            url: '/TestCenterSystem/KPI/GetSdItemParam',
+            page: true, //开启分页
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                //{ filed: 'SD_ITEM_ID', checkbox: true, fixed: true },
+                { field: 'SD_ITEM_CODE', title: '数据项代码', width: 120, align: 'center', sort: true, fixed: true },
+                { field: 'SD_ITEM_NAME', title: '数据项名称', width: 200 },
+                { field: 'SD_ITEM_CAT_NAME', title: '类别', width: 110, sort: true },
+                { field: 'VALID_FLAG', title: '有效标志', width: 80, sort: true, toolbar: '#smark', align: 'center' },
+                { field: 'PROC_STAT_CODE', title: '状态', width: 100, toolbar: '#state', align: 'center' },
+                { field: 'ITEM_VALUE_COUNT', title: '结果数量', width: 80, align: 'center' },
+                { field: 'UPD_DATE', title: '最后操作时间', width: 160, sort: true, align: 'center' },
+                { field: 'UPD_USER_ID', title: '最后操作人', width: 130, sort: true, align: 'center' },
+                { fixed: 'right', title: '操作', width: 90, align: 'center', toolbar: '#operationItem' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+
+        });
+    }
+
+    function search() {
+        table.reload('grid', {
+            where: {
+                keyWord: ";" + $("#inputName").val() + ";" + ";"
+            }, page: {
+                curr: 1
+            }
+        });
+    }
+
+    function addKpi(data, _this) {
+        $(_this).parents("table").find("a").each(function (val, item) {
+            if (item.title === "已添加") {
+                $(item).text("");
+                item.title = "添加";
+                $(item).append('<i class="layui-icon">&#xe608;</i>');
+                $(item).get(0).className = "layui-btn layui-btn-normal layui-btn-mini";
+            }
+        })
+        //$(_this).text(' 已 添 加 ');
+        _this.title = "已添加";
+        $(_this).get(0).className = "layui-btn layui-btn-disabled layui-btn-mini";
+        sdItemId = data.SD_ITEM_ID;
+        sdItemName = data.SD_ITEM_NAME;
+    }
+
+    //查看
+    function detail(id) {
+        var no = totalCount;//totalCount + 1;
+        $.layerOpen({
+            id: "detail11",
+            title: "查看数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Detail?ItemCount=" + no + "&primaryKey=" + id,
+            btn: null
+        });
+    }
+</script>

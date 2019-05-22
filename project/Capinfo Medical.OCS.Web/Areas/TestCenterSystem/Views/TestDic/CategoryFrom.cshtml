@@ -1,0 +1,86 @@
+﻿@{
+    ViewBag.Title = "添加类别";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+@*<div id="form" class="layui-form" @*class="panel-body" style="margin-top: -10px;padding-top:10px">*@
+<form id="form" class="layui-form" style="margin-top: -10px;padding-top:10px">
+    <div class="layui-form" style="margin-top:15px">
+        @Html.AntiForgeryToken() 
+        <div class="layui-form-item"style="margin-top:30px">
+            <label class="layui-form-label" style="text-align: left; left: 50px">检验类别：</label>
+            <div class="layui-inline" style="text-align: left; left: 50px">
+                <input type="text" name="TERM_CAT_NAME" style="width: 390px" lay-verify="name|required" placeholder="请输入类别名称" autocomplete="off" class="layui-input">
+            </div>
+            <input type="hidden" name="TERM_CAT_CODE" />
+        </div>
+
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit1" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+@*</div>*@
+<script>
+
+    layui.use(['form', 'layedit'], function () {
+        var form = layui.form();
+        var layedit = layui.layedit;
+
+        //修改
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/TestDic/CategoryGetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+          
+        form.render();
+        //提交
+        form.on('submit(add)', function (data) { 
+            $.formSubmit({
+                url: "/TestCenterSystem/TestDic/CategoryFrom",/*获取窗体的路径 action*/
+                data: data.field
+            });
+            return false;
+        });
+
+        //自定义验证规则
+        form.verify({
+            name: function (value) {
+                var strlength = getLength(value);
+                if (strlength > 200) {
+                    return '名称不能超过200个字符';
+                }
+            }
+
+        });
+        function getLength(value) {
+            var strlength = 0;
+            for (var i = 0; i < value.length; i++) {
+                if (isCN(value.charAt(i)) == true) {
+                    strlength = strlength + 2; //中文为2个字符
+                } else {
+                    strlength = strlength + 1; //英文一个字符
+                }
+            }
+            return strlength;
+        }
+        function isCN(str) { //判断是不是中文
+            var regexCh = /[u00-uff]/;
+            return !regexCh.test(str);
+        }
+
+    });
+
+</script>

@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "LableForm";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    <style>
+        ::-webkit-input-placeholder { /* WebKit browsers */
+            color: #999; /*//#c2c2c2;*/
+            font-size: 13px;
+        }
+    </style>
+}
+
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item" style="margin-left:20px">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">名称</label>
+            <div class="layui-input-inline" style="width:550px">
+                <input type="text" name="SD_FILTER_NAME" maxlength="60" lay-verify="name" placeholder="请输入名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="margin-left:20px">
+        <label class="layui-form-label" style="width:auto">描述</label>
+        <div class="layui-input-inline" style="width: 550px;">
+            <textarea name="SD_FILTER_ALGO" lay-verify="required" placeholder="请输入描述" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="margin-left:20px">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">标签</label>
+            <div class="layui-input-inline" style="width:550px">
+                <input type="text" id="lable" name="lable" maxlength="60" lay-verify="name" placeholder="请输入标签" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <p style="margin-left:35px;margin-bottom:5px">我的标签：</p>
+    <label id="lable1" style="color: #1E9FFF; text-decoration: underline; width: 200px; cursor: pointer;padding-left: 20px;margin-left:35px" onclick="selectLable(this)">标签1</label>
+    <label id="lable2" style="color: #1E9FFF; text-decoration: underline; width: 200px; cursor: pointer;padding-left: 20px;margin-left:35px" onclick="selectLable(this)">标签2</label>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form();
+        var layer = layui.layer;
+
+        //自定义验证规则
+        form.verify({
+            name: function (value) {
+                if ($.trim(value).length == 0)
+                    return '入组规则名称不能为空';
+                var _length = getStringLen(value);
+                if (_length > 60) {
+                    return '入组规则名称不能超过60个字符';
+                }
+            }
+        });
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/InGroup/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+        var flag = true;//用来判断只进行一次操作
+        form.on('submit(add)', function (data) {
+            if (flag) {
+                flag = false;
+                $.formSubmit({
+                    url: "/TestCenterSystem/InGroup/Form",
+                    data: data.field
+                });
+            }
+            return false;
+        });
+    });
+
+    function getStringLen(Str) {
+        var i, len, code;
+        if (Str == null || Str == "") return 0;
+        len = Str.length;
+        for (i = 0; i < Str.length; i++) {
+            code = Str.charCodeAt(i);
+            if (code > 255) { len++; }//判断非常规字符
+        }
+        return len;
+    }
+
+    function selectLable(object) {
+        
+    }
+
+</script>

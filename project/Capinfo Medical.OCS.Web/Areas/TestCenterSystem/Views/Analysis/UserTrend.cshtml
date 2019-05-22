@@ -1,0 +1,341 @@
+﻿@{
+    Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+
+<label>请选择成员:</label>
+<select id="USER_NAME" tabindex="1" data-placeholder="请选择成员.." class="span8" style="width: 200px;cursor:pointer">
+    <option value=''></option>
+</select>
+@*<form id="form" class="layui-form" style="margin-top: 25px">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">请选择成员</label>
+                <div class="layui-input-inline">
+                    <select id="USER_NAME" lay-verify="required">
+                        <option value="">请选择成员</option>
+
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>*@
+<div id="USER_DATAITEM" class="wrap position" style="margin-top: 0px; height: 300px">
+    <div id="USER_DATAITEMDATA"></div>
+</div>
+<!-- V1.3
+    <div class="layui-tab layui-tab-card">
+    <ul class="layui-tab-title">
+        <li id="TAB_INGROUP" class="layui-this">入组</li>
+        <li id="TAB_DATAITEM">数据项</li>
+        <li id="TAB_KPI">指标</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div id="USER_INGROUP" style="width: 100%;height:400px;"></div>
+        </div>
+        <div class="layui-tab-item">
+            <div id="USER_DATAITEM" style="width: 100%;height:400px;"></div>
+        </div>
+        <div class="layui-tab-item">
+            <div id="USER_KPI" style="width: 100%;height:400px;"></div>
+        </div>
+    </div>
+</div>
+-->
+
+
+<script type="text/javascript">
+
+    function initUser() {
+
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/Trend/Users",
+            data: { PROJECT_ID: $("#project").val(), SD_ID: $("#desease").val() },
+            success: function (data) {
+                $("#USER_NAME").empty();
+                $.each(data, function (key, value) {
+                    $("#USER_NAME").append("<option value='" + value.Item1 + "'>" + value.Item2 + "</option>")
+                })
+
+            }
+        });
+
+    }
+
+    $(function () {
+        $('#USER_NAME').bind('change', function () { initDataItem(); });
+        /*  V1.3
+        $('#TAB_INGROUP').bind('click', function () { initIngroup(); });
+        $('#TAB_DATAITEM').bind('click', function () { initDataItem(); });
+        $('#TAB_KPI').bind('click', function () { initKPI(); });
+        $('#USER_NAME').bind('change', function () { initIngroup(); initDataItem(); initKPI(); });
+        */
+    })
+    /*  V1.3
+    function initIngroup() {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/Trend/UserInGroup",
+            data: { PROJECT_ID: $("#project").val(), SD_ID: $("#desease").val(), USER_ID: $("#USER_NAME").val() },
+            success: function (obj) {
+                var myChart = echarts.init(document.getElementById('USER_INGROUP'));
+                option = {
+
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['创建', '执行', '锁定']
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+
+                            dataView: {
+                                show: true,
+                                readOnly: true,//为false时界面上会显示刷新按钮
+                                optionToContent: function (opt) {
+                                    var series = opt.series; //饼图数据
+                                    var users = opt.legend[0].data;
+                                    var tdHeads = '<td  style="padding: 0 80px">日期</td>'; //表头
+                                    var tdBodys = ''; //数据
+                                    series.forEach(function (item) {
+                                        //组装表头
+                                        tdHeads += `<td style="padding: 0 80px">${item.name}</td>`;
+                                    });
+                                    //tdHeads += `<td style="padding: 0 80px">${"总贡献量"}</td>`;
+                                    var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                                    for (var i = 0, l = opt.xAxis[0].data.length; i < l; i++) {
+                                        tdBodys += `<td>${opt.xAxis[0].data[i]}</td>`;
+                                        for (var j = 0; j < series.length; j++) {
+                                            tdBodys += `<td>${series[j].data[i]}</td>`;
+                                        }
+                                        table += `<tr>${tdBodys}</tr>`;
+                                        tdBodys = '';
+                                    }
+                                    table += '</tbody></table>';
+                                    return table;
+                                }
+                            },
+                            magicType: { type: ['line'] },
+
+
+                        }
+                    },
+                    xAxis: {
+                        name: '日期',
+                        type: 'category',
+                        boundaryGap: false,
+                        data: obj.TIME_RANGE,
+                    },
+                    yAxis: {
+                        name: '个数',
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value}'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '创建',
+                            type: 'line',
+                            data: obj.TO_BE_EXECUTED,
+                        },
+                        {
+                            name: '锁定',
+                            type: 'line',
+                            data: obj.ALREADY_LOCKED,
+                        },
+                        {
+                            name: '执行',
+                            type: 'line',
+                            data: obj.EXECUTED,
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            }
+        });
+
+    }
+    */
+    function initDataItem() {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/Trend/UserDataItem",
+            data: { PROJECT_ID: $("#project").val(), SD_ID: $("#desease").val(), USER_ID: $("#USER_NAME").val() },
+            success: function (obj) {
+                var myChart = echarts.init(document.getElementById('USER_DATAITEM'));
+                option = {
+
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['创建', '执行', '锁定']
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+
+                            dataView: {
+                                show: true,
+                                readOnly: true,//为false时界面上会显示刷新按钮
+                                optionToContent: function (opt) {
+                                    var series = opt.series; //饼图数据
+                                    var users = opt.legend[0].data;
+                                    var tdHeads = '<td  style="padding: 0 80px">日期</td>'; //表头
+                                    var tdBodys = ''; //数据
+                                    series.forEach(function (item) {
+                                        //组装表头
+                                        tdHeads += `<td style="padding: 0 80px">${item.name}</td>`;
+                                    });
+                                    //tdHeads += `<td style="padding: 0 80px">${"总贡献量"}</td>`;
+                                    var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                                    for (var i = 0, l = opt.xAxis[0].data.length; i < l; i++) {
+                                        tdBodys += `<td>${opt.xAxis[0].data[i]}</td>`;
+                                        for (var j = 0; j < series.length; j++) {
+                                            tdBodys += `<td>${series[j].data[i]}</td>`;
+                                        }
+                                        table += `<tr>${tdBodys}</tr>`;
+                                        tdBodys = '';
+                                    }
+                                    table += '</tbody></table>';
+                                    return table;
+                                }
+                            },
+                            magicType: { type: ['line'] },
+
+                        }
+                    },
+                    xAxis: {
+                        name: '日期',
+                        type: 'category',
+                        boundaryGap: false,
+                        data: obj.TIME_RANGE,
+                    },
+                    yAxis: {
+                        name: '个数',
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value}'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '创建',
+                            type: 'line',
+                            data: obj.TO_BE_EXECUTED,
+                        },
+                        {
+                            name: '锁定',
+                            type: 'line',
+                            data: obj.ALREADY_LOCKED,
+                        },
+                        {
+                            name: '执行',
+                            type: 'line',
+                            data: obj.EXECUTED,
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            }
+        });
+
+    }
+    /* V1.3
+    function initKPI() {
+        layer.load(1, {
+            shade: [0.13, '#000'] //0.1透明度的白色背景
+        });
+        //$("#USER_KPI").hide();
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/Trend/UserKPI",
+            data: { PROJECT_ID: $("#project").val(), SD_ID: $("#desease").val(), USER_ID: $("#USER_NAME").val() },
+            success: function (obj) {
+                layer.closeAll();
+                //$("#USER_KPI").show();
+                var myChart = echarts.init(document.getElementById('USER_KPI'));
+                option = {
+
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['创建', '执行', '锁定']
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+
+                            dataView: {
+                                show: true,
+                                readOnly: true,//为false时界面上会显示刷新按钮
+                                optionToContent: function (opt) {
+                                    var series = opt.series; //饼图数据
+                                    var users = opt.legend[0].data;
+                                    var tdHeads = '<td  style="padding: 0 80px">日期</td>'; //表头
+                                    var tdBodys = ''; //数据
+                                    series.forEach(function (item) {
+                                        //组装表头
+                                        tdHeads += `<td style="padding: 0 80px">${item.name}</td>`;
+                                    });
+                                    //tdHeads += `<td style="padding: 0 80px">${"总贡献量"}</td>`;
+                                    var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                                    for (var i = 0, l = opt.xAxis[0].data.length; i < l; i++) {
+                                        tdBodys += `<td>${opt.xAxis[0].data[i]}</td>`;
+                                        for (var j = 0; j < series.length; j++) {
+                                            tdBodys += `<td>${series[j].data[i]}</td>`;
+                                        }
+                                        table += `<tr>${tdBodys}</tr>`;
+                                        tdBodys = '';
+                                    }
+                                    table += '</tbody></table>';
+                                    return table;
+                                }
+                            },
+                            magicType: { type: ['line'] },
+
+                        }
+                    },
+                    xAxis: {
+                        name: '日期',
+                        type: 'category',
+                        boundaryGap: false,
+                        data: obj.TIME_RANGE,
+                    },
+                    yAxis: {
+                        name: '个数',
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value}'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '创建',
+                            type: 'line',
+                            data: obj.TO_BE_EXECUTED,
+                        },
+                        {
+                            name: '锁定',
+                            type: 'line',
+                            data: obj.ALREADY_LOCKED,
+                        },
+                        {
+                            name: '执行',
+                            type: 'line',
+                            data: obj.EXECUTED,
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            }
+        });
+
+    }
+    */
+</script>

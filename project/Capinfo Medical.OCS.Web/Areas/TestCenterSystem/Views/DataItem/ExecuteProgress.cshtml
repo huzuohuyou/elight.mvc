@@ -1,0 +1,103 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>批量执行</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 80px;top:10px">执行进度:</label>
+            <div class="layui-progress " lay-showpercent="true" lay-filter="dataitem_progres" style="left: 110px;top: 25px;width: 86%">
+                <div class="layui-progress-bar layui-bg-blue" id="dataitem_progres" lay-percent="0%"></div>
+            </div>
+        </div>
+        <div class="layui-form-item" style="height: 100px">
+            <label class="layui-form-label" style="width: 80px;">执行日志:</label>
+            <div class="layui-input-block" style="margin-left: 110px; margin-right: 30px;">
+                <textarea class="layui-textarea" id="dataitem_note" name="dataitem_note" style="height: 480px"></textarea>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/pace/pace.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+<script src="~/signalr/hubs"></script>
+<script>
+    var clientKey = '@ViewBag.ClientKey';
+    var type = '@ViewBag.Type';
+    var dataitem_client_key = $.cookie("dataitem_client_key");
+    var url = '@ViewBag.Url';
+    var exeData = [@ViewBag.ExeData];
+    if (type === "1") {
+        if (clientKey == dataitem_client_key) {
+            executeDataItem(clientKey, url, exeData);
+        }
+    }
+    layui.use('element', function () {
+        var $ = layui.jquery
+            , element = layui.element; //Tab的切换功能，切换事件监听等，需要依赖element模块
+        //触发事件
+        $(function () {
+            var chat = $.connection.processHub;
+            chat.client.addNewMessageToPage = function (name, percent, title, note, executeList) {
+                if (name == dataitem_client_key) {
+                    if (note != "")
+                        $("#dataitem_note")[0].value = note + "\r\n" + $("#dataitem_note")[0].value;//.append("<p>" + note + "</p>");
+                    element.progress('dataitem_progres', percent + '%');
+                }
+            };
+            $.connection.hub.start().done(function () {
+            });
+        });
+    });
+
+    function executeDataItem(clientKey, val, items) {
+        $.formSubmit({
+            url: '/TestCenterSystem/DataItem/ExecuteAll?clientKey=' + clientKey + "&url=" + val + "&ids=" + items.join(','),
+            async: true,
+            close: false,
+            success: function (data) {
+                //if(data.state==1)
+                //    refrenshParent();
+            }
+        });
+    }
+    function executeSDataItem(clientKey, val, items) {
+        $.formSubmit({
+            url: '/TestCenterSystem/SDataItem/ExecuteAll?clientKey=' + clientKey + "&url=" + val + "&ids=" + items.join(','),
+            async: true,
+            close: false,
+            success: function (data) {
+                //if(data.state==1)
+                //    refrenshParent();
+            }
+        });
+    }
+    //根据指定url刷新页面
+    function refrenshParent() {
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/DataItem/Index1") > 0) {
+                parent[i].initGrid('SD_ITEM_ID', 'desc');
+                parent[i].document.getElementById("dataItem-executeselect").innerHTML = '<i class="fa fa-check-square-o" aria-hidden="true"></i> 执行';
+                break;
+            }
+        }
+    }
+</script>

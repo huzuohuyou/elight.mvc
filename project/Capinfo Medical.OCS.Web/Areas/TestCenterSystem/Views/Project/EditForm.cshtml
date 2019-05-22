@@ -1,0 +1,209 @@
+﻿@{
+    ViewBag.Title = "EditForm";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>角色列表</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js?V=12"></script>
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <form id="form" class="layui-form" style="margin-top: 25px">
+                @Html.AntiForgeryToken()
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">病种代码</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="SDCode" lay-verify="required" placeholder="请输入病种代码" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">病种名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="SDName" lay-verify="required" placeholder="请输出病种名称" autocomplete="off" class="layui-input" />
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">病种别称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="SDAlias" lay-verify="required" placeholder="请输出病种别称" autocomplete="off" class="layui-input" />
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">顺序号</label>
+                        <div class="layui-input-inline">
+                            <select name="modules" lay-verify="required" lay-search="">
+                                <option value="">请输入排序号</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">指标分类字典</label>
+                        <div class="layui-input-inline">
+                            <select name="TypeDict" lay-verify="required">
+                                <option value="0">手术类</option>
+                                <option value="1">非手术类</option>
+                                <option value="2">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+<!--内容模板-->
+
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form'], function () {
+        var form = layui.form();
+        paging = layui.paging();
+        //initGrid();
+        //$("#toolbar").authorizeButton();
+        //$('#btnSearch').click(initGrid);
+        //$('#keyWord').bindEnterEvent(initGrid);
+    });
+
+    function initGrid() {
+        paging.init({
+            url: '/System/Role/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                keyWord: $("#keyWord").val()
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function () {
+
+            }
+        });
+    }
+
+    function btn_add() {
+        $.layerOpen({
+            id: "add",
+            title: "新增角色",
+            width: "670px",
+            height: "415px",
+            content: "/System/Role/Form",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_edit() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录编辑。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "修改角色",
+            width: "670px",
+            height: "415px",
+            content: "/System/Role/Form?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+
+    function btn_delete() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length < 1) {
+            $.layerMsg("请勾选需要删除的角色。", "warning");
+            return;
+        }
+        $.layerConfirm({
+            content: "您已选中" + ids.length + "条数据, 确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: '/System/Role/Delete',
+                    data: { primaryKey: ids.join() },
+                    success: function () {
+                        initGrid();
+                    }
+                });
+            }
+        });
+    }
+
+    function btn_detail() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条角色查看。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "detail",
+            title: "查看角色",
+            width: "670px",
+            height: "500px",
+            content: "/System/Role/Detail?primaryKey=" + ids[0],
+            btn: null
+        });
+    }
+
+    function btn_authorize() {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选指定角色授权。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "authorize",
+            title: "角色授权",
+            width: "400px",
+            height: "530px",
+            content: "/System/RoleAuthorize/Index?primaryKey=" + ids[0],
+            yes: function (iBody, iWindow) {
+                iWindow.formSubmit();
+            }
+        });
+    }
+
+</script>
+
+

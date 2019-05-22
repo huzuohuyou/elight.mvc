@@ -1,0 +1,96 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>批量执行</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel-body">
+        <div class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label" style="width: 30px;">URL:</label>
+                <div class="layui-input-block" style="margin-left: 60px; margin-right: 10px">
+                    <input class="layui-input" lay-verify="required" id="Url" name="Url" value="@ViewBag.ExeUrl" placeholder="请输入URL" />
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label" style="width: 50%; left: -5px">以下数据项已执行，请选择重新执行的数据项</label>
+                <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-left: 20px; margin-right: 20px">
+                    <thead>
+                        <tr></tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div style="display: none">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/jquery/jquery-1.11.0.min.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/pace/pace.min.js"></script>
+<script>
+    var table;
+    var itemList;
+    layui.use(['table', 'form'], function () {
+        table = layui.table;
+        var form = layui.form;
+        itemList = [@ViewBag.NoExeData];
+        init([@ViewBag.HasExeData]);
+        var clientKey = '@ViewBag.ClientKey';
+        //监听提交
+        form.on('submit(add)', function (data) {
+            var checkStatus = table.checkStatus('grid')
+                , select = checkStatus.data;
+            for (var i = 0; i < select.length; i++) {
+                itemList.push(select[i].SD_ITEM_ID);
+            }
+            $.formSubmit({
+                url: '/TestCenterSystem/DataItem/ExecuteAll?clientKey=' + clientKey + "&url=" + val + "&ids=" + itemList.join(','),
+                data: data.field,
+                success: function (data) {
+                    $.layerOpen({
+                        title: "执行进度",
+                        width: "600px",
+                        height: "490px",
+                        btn: false,
+                        content: "/TestCenterSystem/DataItem/ExecuteProgress"
+                    });
+                }
+            });
+            return false;
+        });
+    });
+    function init(ids) {
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/DataItem/GetHasExeDataItem?ids=' + ids.join(','),
+            even: true,
+            cols: [
+                [
+                    { filed: 'SD_ITEM_ID', checkbox: true, align: 'center' },
+                    { field: 'SD_ITEM_CODE', title: '数据项代码', width: 250, align: 'center' },
+                    { field: 'SD_ITEM_NAME', title: '数据项名称', width: 250 }
+                ]
+            ],
+            done: function (res, curr, count) {
+            }
+        });
+    }
+</script>

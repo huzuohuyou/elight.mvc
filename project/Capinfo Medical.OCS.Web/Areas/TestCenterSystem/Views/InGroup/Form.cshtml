@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    <style>
+        ::-webkit-input-placeholder { /* WebKit browsers */
+            color: #999; /*//#c2c2c2;*/
+            font-size: 13px;
+        }
+    </style>
+}
+
+<form id="form" class="layui-form" style="margin-top: 25px;margin-left:25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">入组规则代码</label>
+            <div class="layui-input-inline" style="width: 500px;">
+                <input type="hidden" name="SD_FILTER_ID" />
+                <input type="text" name="SD_FILTER_CODE" maxlength="20" lay-verify="code" placeholder="请输入入组规则代码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:auto">入组规则名称</label>
+            <div class="layui-input-inline" style="width: 500px;">
+                <input type="text" name="SD_FILTER_NAME" maxlength="60" lay-verify="name" placeholder="请输入入组规则名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label" style="width:83px">顺序号</label>
+            <div class="layui-input-inline" style="width:500px">
+                <select name="ORDER_NO" id="ORDER_NO" lay-verify="required">
+                    <option value="">请选择顺序号</option>
+                    @for (var num = 1; num <= ViewBag.count; num++)
+                    {
+                        <option value="@num">@num</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width:auto">入组逻辑描述</label>
+        <div class="layui-input-inline" style="width: 500px;">
+            <textarea name="SD_FILTER_ALGO" lay-verify="required" placeholder="请输入入组逻辑" class="layui-textarea" style="height:216px"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-block">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form();
+        var layer = layui.layer;
+
+        //自定义验证规则
+        form.verify({
+            code: function (value) {
+                if ($.trim(value).length == 0)
+                    return '入组规则代码不能为空';
+                if (value.length > 20) {
+                    return '入组规则代码不能超过20个字符';
+                }
+                var regex = /^[a-zA-Z0-9_]{1,}$/;
+                var objExp = new RegExp(regex);
+                if (objExp.test(value) != true)
+                    return '入组规则代码只能包含字母、数字和下划线';
+            },
+            name: function (value) {
+                if ($.trim(value).length == 0)
+                    return '入组规则名称不能为空';
+                var _length = getStringLen(value);
+                if (_length > 60) {
+                    return '入组规则名称不能超过60个字符';
+                }
+            }
+        });
+
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/InGroup/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                }
+            });
+        }
+
+        form.render();
+        var flag = true;//用来判断只进行一次操作
+        form.on('submit(add)', function (data) {
+            data.field.SD_FILTER_ALGO = escape(data.field.SD_FILTER_ALGO);
+            if (flag) {
+                flag = false;
+                $.formSubmit({
+                    url: "/TestCenterSystem/InGroup/Form",
+                    data: data.field
+                });
+            }
+            return false;
+        });
+    });
+
+    //var lastClick;//连续点击时,只触发一次
+    //function lockClick() {
+    //    var nowClick = new Date();
+    //    if (lastClick == null) {
+    //        lastClick = nowClick;
+    //        return false;
+    //    } else {
+    //        if (Math.round((nowClick.getTime() - lastClick.getTime())) > 500) {
+    //            lastClick = nowClick;
+    //            return true;
+    //        }
+    //        else {
+    //            lastClick = nowClick;
+    //            return false
+    //        }
+    //    }
+    //}
+
+    function getStringLen(Str) {
+        var i, len, code;
+        if (Str == null || Str == "") return 0;
+        len = Str.length;
+        for (i = 0; i < Str.length; i++) {
+            code = Str.charCodeAt(i);
+            if (code > 255) { len++; }//判断非常规字符
+        }
+        return len;
+    }
+
+</script>

@@ -1,0 +1,516 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>KPI列表</title>
+    <link href="~/Content/layui2.0/css/layui.css?v=18" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .breathe-btn {
+            position: relative;
+            border: 0px solid #2b92d4;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,.3);
+            overflow: hidden;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#6cc3fe), to(#21a1d0));
+            -webkit-animation-timing-function: ease-in-out;
+            -webkit-animation-name: breathe;
+            -webkit-animation-duration: 2700ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-direction: alternate;
+        }
+
+        @@-webkit-keyframes breathe {
+            0% {
+                opacity: .2;
+                box-shadow: 0 1px 2px rgba(255,255,255,0.1);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 1px 30px rgba(59,255,255,1);
+            }
+        }
+    </style>
+    <style>
+        .layui-input, .layui-select, .layui-textarea {
+            height: 30px;
+            width: 120px;
+            line-height: 30px;
+            line-height: 36px\9;
+            border: 1px solid #e6e6e6;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group"></div>
+                @*指标数量：<label id="kpi_count"></label>个*@
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="keyWord" placeholder="指标名称、编码、操作人" autocomplete="off" class="layui-input" style="width: 180px;">
+                </div>
+                <form id="form" class="layui-form" style="float: right; margin-right: 0px;">
+                    <div class="layui-inline" style="float: right;">
+                        <label class="layui-form-label" style="top:-3px; width: 30px;">类别</label>
+                        <div class="layui-input-inline">
+                            <select id="SD_EKPI_CAT" lay-verify="required" lay-filter="SD_EKPI_CAT">
+                                <option value="">请选择类别</option>
+                                @{
+                                    if (ViewBag.ItemType == null)
+                                    {
+                                    }
+                                    else
+                                    {
+                                        var list = ViewBag.ItemType;
+                                        for (var i = 0; i < list.Count; i++)
+                                        {
+                                            <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline" style="float: right;">
+                        <label class="layui-form-label" style="top:-3px; width: 30px;">状态</label>
+                        <div class="layui-inline">
+                            <select id="SD_EKPI_STATE" lay-verify="required" lay-filter="SD_EKPI_STATE">
+                                <option value="">全部</option>
+                                <option value="1">未执行</option>
+                                <option value="5">可执行</option>
+                                <option value="2">已执行</option>
+                                <option value="3">已清空</option>
+                                <option value="4">已锁定</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:0px;">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
+
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+<script src="~/Content/jquery/jquery.md5.js"></script>
+<!--内容模板-->
+<script type="text/html" id="barDemo">
+
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="查看" lay-event="detail"><i class="fa fa-eye" style="margin-right:0px;"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="编辑" lay-event="edit"><i class="layui-icon" style="margin-right:0px;"></i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="配置" lay-event="manage"><i class="layui-icon" style="margin-right:0px;">&#xe620;</i></a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" style="margin-left:2px" title="删除" lay-event="del"><i class="layui-icon" style="margin-right:0px;"></i></a>
+
+    @*<a class="layui-btn layui-btn-primary layui-btn-mini"  lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="manage">配置</a>
+        <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>*@
+</script>
+
+<script type="text/html" id="VALID_FLAG">
+    @*有效标志*@
+    {{# if(d.VALID_FLAG==1){ }}
+    <input id="{{d.SD_EKPI_ID}}" class="layui-form-checkbox" value="1" lay-filter="switchMark" type="checkbox" lay-skin="switch" checked>
+    {{# }else if(d.VALID_FLAG==0){ }}
+    <input id="{{d.SD_EKPI_ID}}" value="0" class="layui-form-checkbox" lay-filter="switchMark" type="checkbox" lay-skin="switch">
+    {{# } }}
+</script>
+
+<script type="text/html" id="IsPositive">
+    {{# if(d.IS_POSITIVE==1){ }}+
+    {{# }else if(d.IS_POSITIVE==0){ }}-
+    {{# }else{ }}其他
+    {{# } }}
+</script>
+
+<script type="text/html" id="SD_EKPI_TYPE">
+    {{# if(d.SD_EKPI_TYPE==1){ }}非统计类
+    {{# }else if(d.SD_EKPI_TYPE==2){ }}统计类
+    {{# }else{ }}[未指定]
+    {{# } }}
+</script>
+
+<script type="text/html" id="IsExecuted">
+    {{# if(d.IS_EXECUTED==1){ }}未执行
+    {{# }else if(d.IS_EXECUTED==2){ }}已执行
+    {{# }else if(d.IS_EXECUTED==5){ }}可执行
+    {{# }else if(d.IS_EXECUTED==3){ }}已清空
+    {{# }else if(d.IS_EXECUTED==4){ }}已锁定
+    {{# }else{ }}[未指定]
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var field = 'ORDER_NO';
+    var type = 'asc';
+    var checkAll = false;
+    var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () {//, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#keyWord').bindEnterEvent(btn_searchKeyWord);
+        initGrid();
+        table.on('tool(gridData)', function (obj) {
+            console.log(obj.data);
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                btn_detail(data.SD_EKPI_ID);
+            } else if (obj.event === 'del') {
+                btn_delete(data.SD_EKPI_ID);
+            } else if (obj.event === 'edit') {
+                btn_edit(data.SD_EKPI_ID);
+            } else if (obj.event === 'manage') {
+                btn_configure(data.SD_EKPI_ID, data.SD_EKPI_CODE, data.SD_EKPI_NAME, data.VALUE_TABLE_ID);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            console.log("limit:" + $("[href]").val())
+            field = obj.field;
+            type = obj.type;
+            //initGrid();
+        });
+
+        //table.on('checkbox(gridData)', function (obj) {
+        //    if (obj.type === 'all') {
+        //        checkAll = ~checkAll;
+        //        selectAll(checkAll);
+        //    }
+        //});
+        //监听mark，mark变化时更新数据库中对应的值
+        form.on("switch(switchMark)", function (data) {
+            var ids = data.elem.parentElement.parentElement.firstElementChild.firstElementChild.value;
+            $.formSubmit({
+                url: "/TestCenterSystem/KPI/Switch?primaryKey=" + data.elem.id + "&valueFlag=" + data.value,
+                success: function () {
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+        });
+        form.on('select(SD_EKPI_CAT)', function (data) {
+            btn_searchKeyWord();
+        });
+        form.on('select(SD_EKPI_STATE)', function (data) {
+            btn_searchKeyWord();
+        });
+    });
+
+
+
+    function refreshGrid() {
+
+        table.reload('grid', { curr: currentPage });
+    }
+
+    //初始化表格
+    function initGrid() {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/KPI/GetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() == "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'SD_EKPI_ID', checkbox: true, fixed: true },
+                { field: 'ORDER_NO', title: '序号', width: 50, align: 'center', fixed: true },
+                { field: 'SD_EKPI_CODE', title: '指标编码', width: 120, sort: true, fixed: true },
+                { field: 'SD_EKPI_NAME', title: '指标名称', width: 300, },
+                { field: 'SD_EKPI_CAT', title: '类别', width: 100, sort: true },
+                { field: 'SD_EKPI_TYPE', title: '类型', width: 100, sort: true, toolbar: '#SD_EKPI_TYPE' },
+                { field: 'VALID_FLAG', title: '有效标志', width: 120, align: 'center', sort: true, toolbar: '#VALID_FLAG' },
+                { field: 'IS_EXECUTED', title: '状态', width: 100, align: 'center', toolbar: '#IsExecuted' },
+                { field: 'IS_POSITIVE', title: '正负向', width: 100, align: 'center', sort: true, toolbar: '#IsPositive' },
+                { field: 'FEN_ZI', title: '分子', width: 100, align: 'center' },
+                { field: 'FEN_MU', title: '分母', width: 100, align: 'center' },
+                { field: 'PERCENT', title: '比率/平均值', width: 100, align: 'center' },
+                { field: 'CREATE_USER_ID', title: '创建人', width: 100, align: 'center' },
+                { field: 'UPD_DATE', title: '最后操作时间', width: 160, align: 'center' },
+                { field: 'UPD_USER_ID', title: '最后操作人', width: 100, align: 'center' },
+                { field: 'VALUE_TABLE_ID', title: '', width: 0, align: 'center' },
+                { fixed: 'right', title: '操作', width: 140, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+
+    //初始化表格
+    function selectAll(all) {
+        console.log($("[href]").val() == "")
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/KPI/GetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: 1000,
+            cols: [[
+                { filed: 'SD_EKPI_ID', checkbox: true, fixed: true, LAY_CHECKED: all },
+                { field: 'ORDER_NO', title: '序号', width: 120, fixed: true },
+                { field: 'SD_EKPI_CODE', title: '指标编码', width: 120, sort: true, fixed: true },
+                { field: 'SD_EKPI_NAME', title: '指标名称', width: 300, },
+                { field: 'SD_EKPI_CAT', title: '类别', width: 100, sort: true },
+                { field: 'VALID_FLAG', title: '有效标志', width: 120, align: 'center', sort: true, toolbar: '#VALID_FLAG' },
+                { field: 'IS_EXECUTED', title: '状态', width: 100, align: 'center', toolbar: '#IsExecuted' },
+                { field: 'IS_POSITIVE', title: '正负向', width: 100, align: 'center', sort: true, toolbar: '#IsPositive' },
+                { field: 'FenZi', title: '分子', width: 100, align: 'center' },
+                { field: 'FenMu', title: '分母', width: 100, align: 'center' },
+                { field: 'Percent', title: '比率', width: 100, align: 'center' },
+                { field: 'CREATE_USER_ID', title: '创建人', width: 100, align: 'center' },
+                { field: 'UPD_DATE', title: '最后操作时间', width: 160, align: 'center' },
+                { field: 'UPD_USER_ID', title: '最后操作人', width: 100, align: 'center' },
+                { fixed: 'right', title: '操作', width: 220, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+
+    //搜索关键词
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("#keyWord").val() + "#" + $("#SD_EKPI_CAT").val() + "#" + $("#SD_EKPI_STATE").val()
+            },
+            curr: 1
+        });
+    }
+    //添加
+    function btn_add() {
+        $.layerOpen({
+            id: "add",
+            title: "新增KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    //编辑
+    function btn_edit(id) {
+        $.layerOpen({
+            id: "edit",
+            title: "修改KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form?primaryKey=" + id,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    //查看
+    function btn_detail(id) {
+        $.layerOpen({
+            id: "detail",
+            title: "查看KPI",
+            width: "670px",
+            height: "490px",
+            content: "/TestCenterSystem/KPI/Form?primaryKey=" + id,
+            btn: null
+        });
+    }
+    //删除
+    function btn_delete(id) {
+        $.layerConfirm({
+            content: "确定删除吗？",
+            callback: function () {
+                $.formSubmit({
+                    url: "/TestCenterSystem/KPI/Delete?primaryKey=" + id,
+                    success: function () {
+                        initGrid()
+                    }
+                });
+            }
+        });
+    }
+    //编辑公式
+    function btn_configure(id, code, name, type) {
+        console.log(id + "-" + code + "-" + name)
+        if (type == 1) {
+            $.layerOpen({
+                id: "configure",
+                title: "编码：" + code + " 名称：" + name,
+                width: "1000px",
+                height: "618px",
+                content: "/TestCenterSystem/KPI/Configure?primaryKey=" + id,
+                close: false,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                }
+            });
+        } else if (type == 2) {
+            $.layerOpen({
+                id: "configure",
+                title: "编码：" + code + " 名称：" + name,
+                width: "680px",
+                height: "618px",
+                content: "/TestCenterSystem/KPI/KYConfigure?primaryKey=" + id,
+                close: false,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                }
+            });
+        } else {
+            layer.msg("请重新编辑指标类型" + type)
+        }
+
+    }
+    //导出比率
+    function btn_export_all() {
+        $.layerOpen({
+            id: "edit",
+            title: "导出结果",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAll",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+    }
+    //导出明细
+    function btn_export_all_detail() {
+
+        $.layerOpen({
+            id: "edit",
+            title: "导出明细",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAllKPIValueDetail",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+
+    }
+
+    //导出汇总
+    function btn_export_all_union() {
+
+        $.layerOpen({
+            id: "edit",
+            title: "导出汇总",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ExportAllKPIValueUnion",
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+
+    }
+    //批量执行
+    function btn_excute_all() {
+        var checkStatus = table.checkStatus('grid'); //test即为基础参数id对应的值
+        var kpiString = "";
+        for (var k = 0; k < checkStatus.data.length; k++) {
+            kpiString += checkStatus.data[k].SD_EKPI_ID + "|";
+        }
+        kpiString.trim('#');
+        console.log(kpiString);
+        $.formSubmit({
+            url: "/TestCenterSystem/KPI/IsExitExeKpi?clientKey=" + $.cookie("kpi_client_key") + "&kpiArray=" + kpiString,
+            showMsg: false,
+            success: function (data) {
+                if (data.length > 0) {
+                    $.layerOpen({
+                        id: "edit",
+                        title: "批量执行",
+                        width: "970px",
+                        height: "630px",
+                        content: '/TestCenterSystem/KPI/ExcuteAll?kpiString=' + JSON.stringify(data).replace(new RegExp("\"", "g"), "\'"),//"?clientKey=" + $.cookie("kpi_client_key") + "&kpiArray=" + kpiString,
+                        btn: null
+                    });
+                } else {
+                    $.layerMsg("当前选择的指标为不需要编辑公式的统计类指标，不能执行", "error");
+                }
+            }
+        });
+    }
+    //批量锁定
+    function btn_lock_all() {
+        var checkStatus = table.checkStatus('grid');
+        var kpiString = ""
+        for (var k = 0; k < checkStatus.data.length; k++) {
+            kpiString += checkStatus.data[k].SD_EKPI_ID + "|"
+        }
+        kpiString.trim('#')
+        console.log(kpiString)
+        $.layerOpen({
+            id: "edit",
+            title: "批量锁定",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/LockAll?clientKey=" + $.cookie("kpi_client_key") + "&kpiArray=" + kpiString,
+            btn: null,
+        });
+    }
+
+    function btn_clearAll() {
+        var checkStatus = table.checkStatus('grid');
+        var kpiString = ""
+        for (var k = 0; k < checkStatus.data.length; k++) {
+            kpiString += checkStatus.data[k].SD_EKPI_ID + "|"
+        }
+        kpiString.trim('#')
+        console.log(kpiString)
+        $.layerOpen({
+            id: "edit",
+            title: "批量清库",
+            width: "970px",
+            height: "630px",
+            content: "/TestCenterSystem/KPI/ClearDataAll?clientKey=" + $.cookie("kpi_client_key") + "&kpiArray=" + kpiString,
+            btn: null,
+        });
+    }
+</script>

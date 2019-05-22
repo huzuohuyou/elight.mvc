@@ -1,0 +1,85 @@
+﻿@{
+    Layout = "~/Views/Shared/_First_Page.cshtml";
+}
+ <div class="layui-tab layui-tab-card" >
+    <ul class="layui-tab-title">
+        <li class="layui-this">入组</li>
+        <li >数据项</li>
+        <li>指标</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div id="main" style="width: 600px;height:400px;"></div>
+        </div>
+        <div class="layui-tab-item">
+            <div>数据项</div>
+        </div>
+        <div class="layui-tab-item">
+            <div>指标</div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $.ajax({
+        type: "GET",
+        url: "/TestCenterSystem/ProjectTrend/InGroup",
+        data: {},
+        success: function (obj) {
+            var myChart = echarts.init(document.getElementById('main'));
+            option = {
+
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['待执行', '已执行', '已锁定']
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none'
+                        },
+                        dataView: { readOnly: false },
+                        magicType: { type: ['line', 'bar'] },
+                        restore: {},
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: obj.TIME_RANGE,
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                },
+                series: [
+                    {
+                        name: '待执行',
+                        type: 'line',
+                        data: obj.TO_BE_EXECUTED,
+                    },
+                    {
+                        name: '已锁定',
+                        type: 'line',
+                        data: obj.ALREADY_LOCKED,
+                    },
+                    {
+                        name: '已执行',
+                        type: 'line',
+                        data: obj.EXECUTED,
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+    });
+
+    
+</script>

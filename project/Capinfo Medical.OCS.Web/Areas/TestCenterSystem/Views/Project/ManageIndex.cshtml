@@ -1,0 +1,267 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>病种管理</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="layer.js"></script>
+    <meta charset="utf-8">
+</head>
+<body>
+    <form id="form" class="layui-form" style="margin-top: 25px">
+        @Html.AntiForgeryToken()
+        <div class="panel animated fadeIn">
+            <div class="panel-body">
+
+
+                <div id="toolbar" class="elight-table-toolbar">
+                    <div class="toolbar-search-input">
+
+                    </div>
+                    
+                    <div class="elight-table-toolbar">
+                        <label id="labSDCount" class="layui-label" style="float:right">当前病种数量：5个</label>
+                        <div class="layui-btn-group">
+                            <button id="btnSDAdd" class="layui-btn layui-btn-primary">增加</button>
+                            <button id="btnSDEdit" class="layui-btn layui-btn-primary">修改</button>
+                            <button id="btnSDExport" class="layui-btn layui-btn-primary">导出</button>
+                        </div>
+                         @*<button id="btnSDAdd" class="layui-btn layui-btn-small layui-btn-primary" style="float:left">
+                            <i class="layui-label" style="font-style:normal">添加病种</i>
+                        </button>
+                        <button id="btnSDEdit" class="layui-btn layui-btn-small layui-btn-primary" style="float:left">
+                            <i class="layui-label" style="font-style:normal">修改病种</i>
+                        </button>
+                        <button id="btnSDExport" class="layui-btn layui-btn-small layui-btn-primary" style="float:left">
+                            <i class="layui-label" style="font-style:normal" >导出全部病种</i>
+                        </button>*@
+                    </div>
+                </div>
+
+                <table id="gridList" class="layui-form layui-table elight-table" lay-skin="line">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" lay-skin="primary">
+                            </th>
+                            <th>病种代码</th>
+                            <th>病种名称</th>
+                            <th>病种别称</th>
+                            <th>指标分类字典</th>
+                            <th>入组</th>
+                            <th>数据项</th>
+                            <th>KPI</th>
+                            <th>
+                                <a>操作</a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <!--内容容器-->
+                    <tbody id="content"></tbody>
+                </table>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;"></fieldset>
+                <div id="paged"></div>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
+<script id="content" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <tr>
+        <td>
+            {{# if(item.ProName==null){ }}
+            {{# }else{ }}{{item.EnCode}}
+            {{# } }} 病种代码
+        </td>
+        <td>{{item.FullName}}</td>
+        <td>
+            {{# if(item.Type==1){ }} 质控
+            {{# }else if(item.Type==2){ }} 科研
+            {{# }else{ }} 公共
+            {{# } }}病种名称
+        </td>
+        <td>
+            {{# if(item.Date==null){ }}
+            {{# }else{ }}{{item.Date}}
+            {{# } }} 病种别称
+        </td>
+        <td>
+            {{# if(item.Date==null){ }}
+            {{# }else{ }}{{item.Date}}
+            {{# } }} 指标分类字典
+        </td>
+        <td>
+            {{# if(item.Date==null){ }}
+            {{# }else{ }}{{item.Date}}
+            {{# } }} 入组
+        </td>
+        <td>
+            {{# if(item.Date==null){ }}
+            {{# }else{ }}{{item.Date}}
+            {{# } }} 数据项
+        </td>
+        <td>
+            {{# if(item.Date==null){ }}
+            {{# }else{ }}{{item.Date}}
+            {{# } }} KPI
+        </td>
+    </tr>
+    {{#  }); }}
+    {{# if(d.list.length<=0) { }}
+    <tr style="color: red">
+        <td colspan="7">查无数据。</td>
+    </tr>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['paging', 'form'], function () {
+        var form = layui.form();
+        paging = layui.paging();
+        //initGrid();
+    });
+    //初始化表格
+    function initGrid() {
+        paging.init({
+            url: '/System/Role/Index',
+            elem: '#content',
+            tempElem: '#contentTpl',
+            params: {
+                keyWord: $("#keyWord").val()
+            },
+            pageConfig: {
+                elem: '#paged',
+                pageSize: 10,
+            },
+            success: function () {
+
+            }
+        });
+    }
+
+    $("#btnSDAdd").click(function () {
+        $.layerOpen({
+
+            title: "添加病种",
+            width: "400px",
+            height: "600px",
+            content: "/TestCenterSystem/Project/EditForm",/*此处填写需要弹出的界面 */
+
+        });
+    });
+    layui.use('layer', function () {
+        var layer = layui.layer;
+
+    });
+    $("#btnSDEdit").click(function () {
+        var ids = $("#gridList").gridSelectedRowValue();
+        if (ids.length != 1) {
+            $.layerMsg("请勾选单条记录编辑。", "warning");
+            return;
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "修改病种",
+            width: "400px",
+            height: "600px",
+            content: "/TestCenterSystem/Project/EditFrom?primaryKey=" + ids[0],
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    });
+    layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+        , layer = layui.layer;
+
+        laypage({
+            cont: 'paged'
+          , pages: 100 //总页数
+          , groups: 5 //连续显示分页数
+        });
+
+        laypage({
+            cont: 'demo2'
+          , pages: 100
+          , skin: '#1E9FFF'
+        });
+
+        laypage({
+            cont: 'demo3'
+          , pages: 100
+          , first: 1
+          , last: 100
+          , prev: '<em><</em>'
+          , next: '<em>></em>'
+        });
+
+        laypage({
+            cont: 'demo4'
+          , pages: 100
+          , first: false
+          , last: false
+        });
+
+        laypage({
+            cont: 'demo5'
+          , pages: 100
+          , curr: location.hash.replace('#!fenye=', '') //获取hash值为fenye的当前页
+          , hash: 'fenye' //自定义hash值
+        });
+
+        laypage({
+            cont: 'demo6'
+          , pages: 5
+          , groups: 0
+          , first: false
+          , last: false
+          , jump: function (obj, first) {
+              if (!first) {
+                  layer.msg('第 ' + obj.curr + ' 页');
+              }
+          }
+        });
+
+        laypage({
+            cont: 'demo7'
+          , pages: 100
+          , skip: true
+        });
+
+        var nums = 5; //每页出现的数据量
+
+        //模拟渲染
+        var render = function (data, curr) {
+            var arr = []
+            , thisData = data.concat().splice(curr * nums - nums, nums);
+            layui.each(thisData, function (index, item) {
+                arr.push('<li>' + item + '</li>');
+            });
+            return arr.join('');
+        };
+        //调用分页
+        laypage({
+            cont: 'demo8'
+          , pages: Math.ceil(data.length / nums) //得到总页数
+          , jump: function (obj) {
+              document.getElementById('biuuu_city_list').innerHTML = render(data, obj.curr);
+          }
+        });
+
+    });
+</script>

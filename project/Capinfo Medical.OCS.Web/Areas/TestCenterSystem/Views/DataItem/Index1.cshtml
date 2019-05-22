@@ -1,0 +1,549 @@
+﻿@{
+    ViewBag.Title = "数据项管理";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group">
+                </div>
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="CodeOrName" placeholder="请输入代码、名称或操作者" autocomplete="off" class="layui-input" style="width: 170px; font-size: 13px">
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 250px; font-size: 13px">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 40px; right: -50px">类别:</label>
+                    <div class="layui-input-block" style="width: 120px;">
+                        <select name="ItemType" lay-filter="ItemType">
+                            <option value="">请选择类别</option>
+                            @*<option value="all">全部信息</option>*@
+                            @{
+                                if (ViewBag.ItemType == null)
+                                {
+                                }
+                                else
+                                {
+                                    var list = ViewBag.ItemType;
+                                    for (var i = 0; i < list.Count; i++)
+                                    {
+                                        <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 125px; font-size: 13px">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 40px; right: -50px">状态:</label>
+                    <div class="layui-input-block" style="width: 80px;">
+                        <select name="IsExecute" lay-filter="IsExecute">
+                            <option value="">全部</option>
+                            <option value="1">未执行</option>
+                            <option value="2">已执行</option>
+                            <option value="3">已清空</option>
+                            <option value="4">已锁定</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="toolbar-search-input layui-form layui-inline" style="max-width: 125px; font-size: 13px;display:none">
+                    <label class="layui-form-label  layui-inline" style="top: -3px; max-width: 60px; right: -30px">是否映射:</label>
+                    <div class="layui-input-block" style="width: 80px;">
+                        <select name="IsDepend" lay-filter="IsDepend">
+                            <option value="">全部</option>
+                            <option value="0">未映射</option>
+                            <option value="1">已映射</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <table id="gridList" class="layui-table" lay-filter="gridData">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+
+<script type="text/html" id="barDemo">
+    @*<a class="layui-btn layui-btn-primary layui-btn-mini" lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="manage">配置</a>
+        <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>*@
+
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="查看" lay-event="detail"><i class="fa fa-eye" style="width: 17px;">@*&#xe615;*@</i></a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="编辑" lay-event="edit"><i class="layui-icon" style="width: 17px;margin-right: 1px"></i></a>
+    @*<a class="layui-btn layui-btn-normal layui-btn-mini" title="配置" lay-event="manage"><i class="layui-icon"></i></a>*@
+    <a class="layui-btn layui-btn-normal layui-btn-mini" style="margin-left:2px" title="配置" lay-event="manage"><i class="layui-icon" style="width: 17px;margin-right: 1px">&#xe620;</i></a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" style="margin-left:2px" title="删除" lay-event="del"><i class="layui-icon" style="width: 17px;margin-right: 1px"></i></a>
+</script>
+<script type="text/html" id="smark">
+    @*有效标志*@
+    {{# if(d.VALID_FLAG==1){ }}
+    <input id="{{d.SD_ITEM_ID}}" class="layui-form-checkbox" value="1" lay-filter="switchMark" type="checkbox" lay-skin="switch" checked>
+    {{# }else if(d.VALID_FLAG==0){ }}
+    <input id="{{d.SD_ITEM_ID}}" value="0" class="layui-form-checkbox" lay-filter="switchMark" type="checkbox" lay-skin="switch">
+    {{# } }}
+</script>
+<script type="text/html" id="state">
+    {{# if(d.PROC_STAT_CODE==1){ }} 未执行
+    {{# }else if(d.PROC_STAT_CODE==2){ }}已执行
+    {{# }else if(d.PROC_STAT_CODE==3){ }}已清空
+    {{# }else if(d.PROC_STAT_CODE==4){ }}已锁定
+    {{# } }}
+</script>
+<script type="text/html" id="src">
+    {{# if(d.SD_ITEM_SRC==1){ }} 公共
+    {{# }else if(d.SD_ITEM_SRC==2){ }}自定义
+    {{# }else{ }}
+    {{# } }}
+</script>
+<script type="text/javascript">
+    var paging;
+    var totalCount;
+    var tab;
+    var layer;
+    var table;
+    var currentPage;
+    var isExe = false;
+    var exeUrl = "";
+    //var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () { //, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#CodeOrName').bindEnterEvent(btn_searchKeyWord);
+        isHasTask();
+        initGrid('SD_ITEM_ID', 'desc');
+        table.on('tool(gridData)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                select(data.SD_ITEM_ID);
+            } else if (obj.event === 'del') {
+                del(data.SD_ITEM_ID);
+            } else if (obj.event === 'edit') {
+                edit(data.SD_ITEM_ID, data.SD_ITEM_SRC);
+            } else if (obj.event === 'manage') {
+                manage(data.SD_ITEM_ID, data.SD_ITEM_SRC);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            //initGrid(obj.field, obj.type);
+        });
+        form.on('select(ItemType)', function (data) {
+            btn_searchKeyWord();
+        });
+        form.on('select(IsExecute)', function (data) {
+            btn_searchKeyWord();
+        });
+        //监听mark，mark变化时更新数据库中对应的值
+        form.on("switch(switchMark)", function (data) {
+            $.formSubmit({
+                url: "/TestCenterSystem/DataItem/Switch?primaryKey=" + data.elem.id + "&valueFlag=" + data.value,
+                success: function () {
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+        });
+        table.on('checkbox(gridData)', function (obj) {
+            ////if (itemList == null)
+            ////    itemList = new Array();
+            ////if (obj.type === 'one') {
+            ////    if (obj.checked)
+            ////        itemList.push(obj.data.SD_ITEM_ID);
+            ////    else
+            ////        itemList.remove(obj.data.SD_ITEM_ID);
+            ////} else {
+            ////    if (obj.checked) {
+            ////        for (var i = 0; i < obj.data.length; i++) {
+            ////            if (!itemList.contains(obj.data[i].SD_ITEM_ID))
+            ////                itemList.push(obj.data[i].SD_ITEM_ID);
+            ////        }
+            ////    } else {
+            ////        for (var i = 0; i < obj.data.length; i++) {
+            ////            if (itemList.contains(obj.data[i].SD_ITEM_ID))
+            ////                itemList.remove(obj.data[i].SD_ITEM_ID);
+            ////        }
+            ////    }
+            ////}
+        });
+    });
+
+    function isHasTask() {
+        var clientKey = $.cookie("dataitem_client_key");
+        $.formSubmit({
+            url: "/TestCenterSystem/DataItem/IsHasTask?clientKey=" + clientKey,
+            showMsg: false,
+            success: function (data) {
+                if (data.data === "True") {
+                    $("#dataItem-cancel").get(0).className = "layui-btn layui-btn-primary layui-btn-small";
+                    $("#dataItem-cancel").removeAttr("disabled");
+                } else {
+                    $("#dataItem-cancel").get(0).className = "layui-btn layui-btn-disabled layui-btn-small";
+                    $("#dataItem-cancel").attr("disabled", true);
+                }
+            }
+        });
+    }
+    function refreshGrid() {
+        refresh();
+        table.reload('grid', { curr: currentPage });
+    }
+
+    function initGrid(field, type) {
+        refresh();
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/DataItem/GetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() === "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'SD_ITEM_ID', checkbox: true, fixed: true },
+                { field: 'ORDER_NO', title: '序号', width: 60, align: 'center', fixed: true },//sort: true,
+                { field: 'SD_ITEM_CODE', title: '数据项代码', width: 160, align: 'center', sort: true, fixed: true },
+                { field: 'SD_ITEM_NAME', title: '数据项名称', width: 300 },// style: 'width:20%',
+                { field: 'SD_ITEM_CAT_NAME', title: '类别', width: 160, sort: true },// style: 'width:8%',
+                { field: 'VALID_FLAG', title: '有效标志', width: 100, sort: true, toolbar: '#smark', align: 'center' },// style: 'width:8%',
+                { field: 'PROC_STAT_CODE', title: '状态', width: 100, toolbar: '#state', align: 'center' },// style: 'width:7%',
+                //{ field: 'SD_ITEM_SRC', title: '来源', width: 80, sort: true, toolbar: '#src', align: 'center' },
+                { field: 'ITEM_VALUE_COUNT', title: '结果数量', width: 100, align: 'center' },// style: 'width:8%',sort: true,
+                { field: 'CREATE_USER_ID', title: '创建人', width: 220, sort: true, align: 'center' }, //style: 'width:10%',
+                { field: 'UPD_DATE', title: '最后操作时间', width: 200, sort: true, align: 'center' },// style: 'width:20%',
+                { field: 'UPD_USER_ID', title: '最后操作人', width: 220, sort: true, align: 'center' }, //style: 'width:10%',
+                //{ field: 'DEP_SD_ITEM_NAME', title: '依赖数据项', width: 210, align: 'center' },
+                { fixed: 'right', title: '操作', width: 140, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                totalCount = count;
+            }
+        });
+    }
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("select[name=ItemType]").get(0).value + ";" + $("#CodeOrName").val() + ";" + $("select[name=IsExecute]").get(0).value + ";" + $("select[name=IsDepend]").get(0).value
+            },
+            curr: 1
+        });
+    }
+    function del(id) {
+        layer.confirm('确定删除当前数据吗?', function (index) {
+            $.formSubmit({
+                url: '/TestCenterSystem/DataItem/Delete?primaryKey=' + id,
+                success: function () {
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+            layer.close(index);
+        });
+    }
+    function edit(id, src) {
+        //判断是自定义还是公共
+        if (src === 1) {
+            $.layerOpen({
+                id: "update",
+                title: "修改数据项",
+                width: "680px",
+                height: "490px",
+                content: "/TestCenterSystem/CommonItem/UpdateCommonItem?ItemCount=" + totalCount + "&primaryKey=" + id,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+        }
+        else {
+            $.layerOpen({
+                id: "update",
+                title: "修改数据项",
+                width: "680px",
+                height: "490px",
+                content: "/TestCenterSystem/DataItem/Form?ItemCount=" + totalCount + "&primaryKey=" + id,
+                yes: function (iBody) {
+                    iBody.find('#btnSubmit').click();
+                    table.reload('grid', { curr: currentPage });
+                }
+            });
+        }
+    }
+    function select(id) {
+        var no = totalCount + 1;
+        $.layerOpen({
+            id: "detail",
+            title: "查看数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Detail?ItemCount=" + no + "&primaryKey=" + id,
+            btn: null
+        });
+    }
+    function manage(id, src) {
+        if (src === 2) {
+            $.layerOpen({
+                id: "detail" + id,
+                name: "",
+                title: "数据项配置",
+                width: "1000px",
+                height: "618px",
+                content: "/TestCenterSystem/CustomItem/Index1?primaryKey=" + id,
+                btn: null
+            });
+        }
+        else {
+            $.layerOpen({
+                id: "detail" + id,
+                title: "数据项配置",
+                width: "1000px",
+                height: "618px",
+                content: "/TestCenterSystem/CommonItem/CommonManage?primaryKey=" + id,
+                btn: null
+            });
+        }
+    }
+    //展开、收起
+    function openText() {
+        var go = $("#textblock").get(0);
+        var o = $("#opentool").get(0);
+        var c = $("#closetool").get(0);
+        if (go.className == "close") {
+            go.className = "open";
+            o.className = "hid";
+            c.className = "show";
+            return;
+        }
+        else {
+            go.className = "close";
+            c.className = "hid";
+            o.className = "show";
+            return;
+        }
+    }
+    function btn_customset_add() {
+        var no = totalCount + 1;
+        $.layerOpen({
+            id: "add",
+            title: "自定义添加数据项",
+            width: "690px",
+            height: "490px",
+            content: "/TestCenterSystem/DataItem/Form?ItemCount=" + no,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                table.reload('grid');
+            }
+        });
+    }
+    function btn_common_add() {
+        $.layerOpen({
+            id: "commonitem",
+            title: "公共添加数据项",
+            width: "680px",
+            height: "490px",
+            content: "/TestCenterSystem/CommonItem/Index",//?primaryKey=" +  + ids[0].value,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                initGrid();
+            }
+        });
+    }
+    function btn_export() {
+        $.formSubmit({
+            url: '/TestCenterSystem/DataItem/ExportSql',
+            showMsg: false,
+            success: function (data) {
+                if (data.data == "")
+                    $.layerMsg("未找到可导出的脚本数据！", 2);
+                else
+                    $.ExportSqlFile("数据项脚本.Sql", data.data);
+            }
+        });
+    }
+    function refresh() {
+        isExe = false;
+        exeUrl = "";
+    }
+    function btn_executeAll() {
+        var clientKey = $.cookie("dataitem_client_key");
+        var itemList = [];
+        var checkStatus = table.checkStatus('grid')
+            , select = checkStatus.data;
+        if (!isExe) {
+            if (select.length == 0) {
+                $.layerMsg("请勾选要执行的数据项", "warning");
+                return;
+            }
+            for (var i = 0; i < select.length; i++) {
+                itemList.push(select[i].SD_ITEM_ID);
+            }
+            layer.prompt({ title: '请输入url' }, function (val, index) {
+                layer.close(index);
+                if (val.lastIndexOf('ManyDataItemApi') == -1) {
+                    $.layerMsg("url输入错误！接口应为：ManyDataItemApi", "error");
+                    return;
+                }
+                exeUrl = val;
+                isExe = true;
+                $("#dataItem-executeselect")[0].innerHTML = '<i class="fa fa-check-square-o" aria-hidden="true"></i> 执行中';
+                $.layerOpen({
+                    id: "execute",
+                    title: "执行进度",
+                    width: "1000px",
+                    height: "600px",
+                    btn: false,
+                    content: "/TestCenterSystem/DataItem/ExecuteProgress?clientKey=" + clientKey + "&url=" + val + "&ids=" + itemList.join(',') + "&type=1"
+                });
+            });
+        } else {
+            $.layerOpen({
+                id: "execute",
+                title: "执行进度",
+                width: "1000px",
+                height: "600px",
+                btn: false,
+                content: "/TestCenterSystem/DataItem/ExecuteProgress?clientKey=" + clientKey + "&url=" + exeUrl + "&ids=" + (itemList.length === 0 ? "" : itemList.join(',')) + "&type=1"
+            });
+        }
+    }
+    function btn_cancel() {
+        var clientKey = $.cookie("dataitem_client_key");
+        $("#dataItem-cancel").get(0).value = "取消中";
+        $("#dataItem-cancel").get(0).className = "layui-btn layui-btn-disabled layui-btn-small";
+        $("#dataItem-cancel").attr("disabled", true);
+        $.formSubmit({
+            url: "/TestCenterSystem/CustomItem/CancelExeDll?clientKey=" + clientKey,
+            close: false,
+            async: true,
+            success: function () {
+            }
+        });
+    }
+
+    function btn_exportAll() {
+        var itemList = [];
+        var checkStatus = table.checkStatus('grid')
+            , select = checkStatus.data;
+        if (select.length == 0) {
+            $.layerMsg("请勾选要导出结果的数据项", "warning");
+            return;
+        }
+        for (var i = 0; i < select.length; i++) {
+            itemList.push(select[i].SD_ITEM_ID);
+        }
+        $.layerOpen({
+            id: "edit",
+            title: "导出数据项结果",
+            width: "970px",
+            height: "630px",
+            btn: null,
+            content: "/TestCenterSystem/DataItem/ExportResult?route=/TestCenterSystem/DataItem/ExportValue&data=" + itemList.join(","),
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+            }
+        });
+        //$.formSubmit({
+        //    url: '/TestCenterSystem/DataItem/ExportDataItemValue',
+        //    data: { itemIdList: itemList },
+        //    async: true,
+        //    showMsg: false,
+        //    success: function (data) {
+        //        $.JSONToExcelConvertor(data.data, "数据项执行结果表", data.title);
+        //    }
+        //});
+    }
+    function btn_lockAll() {
+        var clientKey = $.cookie("dataitem_client_key");
+        var itemList = [];
+        var checkStatus = table.checkStatus('grid')
+            , select = checkStatus.data;
+        if (!isExe) {
+            if (select.length == 0) {
+                $.layerMsg("请勾选要执行的数据项", "warning");
+                return;
+            }
+            for (var i = 0; i < select.length; i++) {
+                itemList.push(select[i].SD_ITEM_ID);
+            }
+            $.formSubmit({
+                url: "/TestCenterSystem/DataItem/VerificationDataItem?ids=" + itemList.join(","),
+                close: false,
+                async: true,
+                showMsg: false,
+                success: function (data) {
+                    if (data.state === 2) {
+                        layer.confirm(data.message, {
+                            btn: ['是', '否'] //按钮
+                        }, function () {
+                            $.layerOpen({
+                                id: "edit",
+                                title: "批量锁定",
+                                width: "970px",
+                                height: "630px",
+                                content: "/TestCenterSystem/DataItem/LockDataAll?clientKey=" + clientKey + "&ids=" + itemList.join(",") + "&type=2",
+                                btn: null
+                            });
+                        }, function () {
+
+                        });
+                    } else {
+                        $.layerOpen({
+                            id: "edit",
+                            title: "批量锁定",
+                            width: "970px",
+                            height: "630px",
+                            content: "/TestCenterSystem/DataItem/LockDataAll?clientKey=" + clientKey + "&ids=" + itemList.join(",") + "&type=2",
+                            btn: null
+                        });
+
+                    }
+                }
+            });
+
+        }
+    }
+    function btn_clearAll() {
+        var clientKey = $.cookie("dataitem_client_key");
+        var itemList = [];
+        var checkStatus = table.checkStatus('grid')
+            , select = checkStatus.data;
+        if (!isExe) {
+            if (select.length === 0) {
+                $.layerMsg("请勾选要清库的数据项", "warning");
+                return;
+            }
+            for (var i = 0; i < select.length; i++) {
+                itemList.push(select[i].SD_ITEM_ID);
+            }
+            $.layerOpen({
+                id: "edit",
+                title: "批量清库",
+                width: "970px",
+                height: "630px",
+                content: "/TestCenterSystem/DataItem/ClearDataAll?clientKey=" + clientKey + "&ids=" + itemList.join(",") + "&type=3",
+                btn: null
+            });
+        }
+    }
+</script>

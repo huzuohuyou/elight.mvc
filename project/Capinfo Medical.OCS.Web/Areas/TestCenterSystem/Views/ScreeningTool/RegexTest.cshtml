@@ -1,0 +1,190 @@
+﻿@{
+    Layout = null;
+    //var count = ViewBag.list.count(); //as IList<TC_SD_FILTER_INFO>;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>入组管理</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Content/jquery/jquery.min.js"></script>
+    <script src="~/Content/layui2.0/layui.js"></script>
+    <script src="~/Content/framework/js/global.js"></script>
+    <script src="~/Content/jquery/jquery.cookie.js"></script>
+</head>
+<body>
+    <div class="panel animated fadeIn" style="height:625px">
+        <div class="panel-body">
+            <form id="form" class="layui-form" style="width:100%;">
+                <h3 style="font-size:20px;margin-bottom:5px">正则表达式在线测试</h3>
+                <div class="container-fluid fadeIn animated">
+                    <div class="row">
+                        <div class="col-md-3" style="width: 70%; float: left;">
+                            <div class="layui-input-inline" style="width: 100%;">
+                                <textarea name="matchedText" id="matchedText" @*lay-verify="required"*@ placeholder="在此输入待匹配文本" class="layui-textarea"></textarea>
+                            </div>
+                            <div class="layui-form-item" pane="">
+
+                                <div class="elight-panel container-panel" style="height:76px;overflow-x: hidden;overflow-y: scroll;margin-top:10px !important">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label" style="width:auto">正则表达式</label>
+                                        <div class="layui-input-inline" style="width:380px">
+                                            <input type="text" name="expression" id="expression" maxlength="60" @*lay-verify="name"*@ placeholder="在此输入正则表达式" autocomplete="off" class="layui-input">
+                                        </div>
+                                        <div class="layui-inline">
+                                            <div class="layui-input-block" style="margin-left:10px">
+                                                <input type="checkbox" name="globalSearch" id="globalSearch" lay-skin="primary" title="全局搜索" @*checked=""*@>
+                                                <input type="checkbox" name="ignoreCase" id="ignoreCase" lay-skin="primary" title="忽略大小写">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            @*<input type="button" class="layui-btn layui-btn-primary layui-btn-small" lay-submit lay-filter="regexTest" id="regexTest" value="测试匹配" />@*<i class="fa fa-check"></i>*@
+                                            <button class="layui-btn layui-btn-primary layui-btn-small" lay-submit lay-filter="regexTest" id="regexTest"><i class="fa fa-check"></i>   测试匹配</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>匹配结果：</p>
+                            <div class="layui-input-inline" style="width: 100%;">
+                                <textarea name="matchingResult" id="matchingResult" class="layui-textarea" readonly></textarea>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="elight-panel container-panel" style="height:74px;overflow-x: hidden;overflow-y: scroll;margin-top:10px !important">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label" style="width:auto">替换文本</label>
+                                        <div class="layui-input-inline" style="width:380px">
+                                            <input type="text" name="replaceText" id="replaceText" maxlength="60" @*lay-verify="name"*@ placeholder="在此输入替换文本" autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <button class="layui-btn layui-btn-primary layui-btn-small" lay-submit lay-filter="replace" id="replace"><i class="fa fa-refresh"></i>   替换</button>
+                                        @*<i class="fa fa-refresh"></i>*@
+                                        @*<input type="button" class="layui-btn layui-btn-primary layui-btn-small" lay-submit lay-filter="replace" id="replace" value="替换" />*@
+                                    </div>
+
+                                </div>
+                            </div>
+                            <p>替换结果：</p>
+                            <div class="layui-input-inline" style="width: 100%;">
+                                <textarea name="replaceResult" id="replaceResult" class="layui-textarea" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-9" style="width: 30%; float: right;">
+                            <div class="panel container-panel" style="margin-top: 0px !important;">
+                                <div class="panel-body" style="padding-top:0px;margin-top:-15px">
+                                    <div class="elight-panel container-panel" style="height:500px;overflow-x: hidden;overflow-y: scroll;">
+                                        @*<ul id="treeItem" class="ztree"></ul>*@
+                                        <h3 style="font-size:18px">常用正则表达式</h3>
+                                        <label id="lowerCharExp" style="color: #1E9FFF; text-decoration: underline; width: 200px; cursor: pointer;padding-left: 20px;font-size:16px" onclick="Match_LowerChar('[a-z]')">匹配小写英文字符</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+<script type="text/javascript">
+    var paging;
+    //var totalCount;
+    var layer;
+    var table;
+    //var currentPage;
+    layui.config({
+        base: parent._baseUrl
+    }).use(['laypage', 'table', 'form', 'layer'], function () {//'paging',
+        layer = parent.layer || layui.layer;
+        table = layui.table;
+        var form = layui.form;
+
+        form.on('submit(regexTest)', function (data) {
+            //function Test(data) {
+            if ($("#matchedText").val() == null || $("#matchedText").val() == "") {
+                $.layerMsg("请输入待匹配文本！", "warning");
+                return;
+            }
+            if ($("#expression").val() == null || $("#expression").val() == "") {
+                $.layerMsg("请输入正则表达式！", "warning");
+                return;
+            }
+            $.formSubmit({
+                url: '/TestCenterSystem/ScreeningTool/RegexTestOrReplace?flag=' + 0,
+                data: data.field,
+                showMsg: false,
+                close: false,
+                success: function (data) {
+                    if (data.msg == "success") {
+                        if (data.data == null || data.data == "") {
+                            $("#matchingResult").val("（没有匹配）");
+                        }
+                        else
+                            $("#matchingResult").val(data.data);
+                    }
+                    else
+                        $.layerMsg(data.data, "error");
+                }
+            });
+            return false;
+        });
+
+        form.on('submit(replace)', function (data) {
+            $.formSubmit({
+                url: '/TestCenterSystem/ScreeningTool/RegexTestOrReplace?flag=' + 1,
+                data: data.field,
+                showMsg: false,
+                close: false,
+                success: function (data) {
+                    if (data.msg == "success") {
+                        $("#replaceResult").val(data.data);
+                    }
+                    else
+                        $.layerMsg(data.data, "error");
+                }
+            });
+            return false;
+        });
+    });
+
+    function Match_LowerChar(express) {
+        $("#expression").val(express);
+        if ($("#matchedText").val() == null || $("#matchedText").val() == "") {
+            $.layerMsg("请输入待匹配文本！", "warning");
+            return;
+        }
+
+        $.formSubmit({
+            url: '/TestCenterSystem/ScreeningTool/RegexTestOrReplace?flag=' + 0,
+            data: {
+                matchedText: $("#matchedText").val(),
+                expression: express,
+                globalSearch: document.getElementsByName('globalSearch')[0].checked ? $("#globalSearch").val() : null,
+                ignoreCase: document.getElementsByName('ignoreCase')[0].checked ? $("#ignoreCase").val() : null,//$("#ignoreCase").val(),
+            },
+            showMsg: false,
+            close: false,
+            success: function (data) {
+                if (data.msg == "success") {
+                    if (data.data == null || data.data == "") {
+                        $("#matchingResult").val("（没有匹配）");
+                    }
+                    else
+                        $("#matchingResult").val(data.data);
+                }
+                else
+                    $.layerMsg(data.data, "error");
+            }
+        });
+    }
+</script>

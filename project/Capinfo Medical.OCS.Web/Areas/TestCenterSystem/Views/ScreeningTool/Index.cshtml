@@ -1,0 +1,256 @@
+﻿@{
+    ViewBag.Title = "筛选工具";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/layui2.0/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/console.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="panel animated fadeIn">
+        <div class="panel-body">
+            <div id="toolbar" class="elight-table-toolbar">
+                <div class="layui-btn-group"></div>
+                <button id="btnSearch" class="toolbar-search-button layui-btn layui-btn-normal layui-btn-small">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <div class="toolbar-search-input">
+                    <input type="text" id="LabelOrName" placeholder="请输入名称或标签" autocomplete="off" class="layui-input" style="width: 170px; font-size: 13px">
+                </div>
+            </div>
+            <table id="gridList" class="layui-table" lay-filter="gridData" style="margin-top:8px">
+                <thead>
+                    <tr></tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/Content/jquery/jquery.min.js"></script>
+<script src="~/Content/layui2.0/layui.js"></script>
+<script src="~/Content/framework/js/global.js"></script>
+<script src="~/Content/jquery/jquery.cookie.js"></script>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-mini" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="quote">引用</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+</script>
+<script type="text/html" id="hasTable">
+    {{# if(d.SD_ITEM_SRC==1){ }} 是
+    {{# }else if(d.SD_ITEM_SRC==2){ }} 否
+    {{# }else{ }}
+    {{# } }}
+</script>
+<script type="text/javascript">
+    //var paging;
+    var totalCount;
+    //var tab;
+    var layer;
+    var table;
+    var currentPage;
+    //var isExe = false;
+    //var exeUrl = "";
+    //var itemList;
+    layui.use(['table', 'layer', 'form', 'laypage'], function () { //, 'tab'
+        table = layui.table;
+        layer = parent.layer || layui.layer;
+        var form = layui.form;
+        $("#toolbar").authorizeButton();
+        $('#btnSearch').click(btn_searchKeyWord);
+        $('#LabelOrName').bindEnterEvent(btn_searchKeyWord);
+        initGrid('SD_ITEM_ID', 'desc');
+        table.on('tool(gridData)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                select(data.SD_ITEM_ID,data.SD_ITEM_NAME);
+            } else if (obj.event === 'del') {
+                del(data.SD_ITEM_ID);
+            } else if (obj.event === 'edit') {
+                edit(data.SD_ITEM_ID,data.SD_ITEM_NAME);
+            } else if (obj.event === 'quote') {
+                quote(data.SD_ITEM_ID,data.SD_ITEM_NAME);
+            }
+        });
+        table.on('sort(gridData)', function (obj) {
+            //initGrid(obj.field, obj.type);
+        });
+    });
+    function initGrid(field, type) {
+        //refresh();
+        table.render({
+            id: 'grid',
+            elem: '#gridList',
+            url: '/TestCenterSystem/DataItem/GetList?field=' + field + '&type=' + type,
+            page: true,
+            //even: true,
+            height: 500,
+            limits: [10, 20, 30, 40, 50, 1000],
+            limit: $("[href]").val() === "" ? 10 : parseInt($("[href]").val()),
+            cols: [[
+                { filed: 'SD_ITEM_ID', checkbox: true, fixed: true },
+                { field: 'SD_ITEM_CODE', title: '名称', width: 130, sort: true, fixed: true },
+                { field: 'SD_ITEM_NAME', title: '标签', width: 300, sort: true },
+                { field: 'SD_ITEM_CAT_NAME', title: '是否有表', width: 160, sort: true, toolbar: '#hasTable' },
+                { field: 'VALID_FLAG', title: '操作者', width: 100, sort: true, align: 'center' },
+                { field: 'PROC_STAT_CODE', title: '时间', width: 100, align: 'center' },
+                { fixed: 'right', title: '操作', width: 220, align: 'center', toolbar: '#barDemo' }
+            ]],
+            done: function (res, curr, count) {
+                currentPage = curr;
+                //totalCount = count;
+            }
+        });
+    }
+    function btn_searchKeyWord() {
+        table.reload('grid', {
+            where: {
+                keyWord: $("#LabelOrName").val()
+            },
+            curr: 1
+        });
+    }
+    function del(id) {
+        //先判断该条信息 是否正在查看、编辑或引用
+        for (var i = 0; i < parent.length; i++) {
+            if (parent[i].document.URL.indexOf("/TestCenterSystem/ScreeningTool/Form?primaryKey=" + id) > 0) {
+                $.layerMsg("该项正在被查看、编辑或引用，不能删除！", "warning");
+                return;
+            }
+        }
+        $.layerOpen({
+            id: "delete",
+            title: "请选择删除内容",
+            width: "400px",
+            height: "240px",
+            content: "/TestCenterSystem/ScreeningTool/DeleteForm?primaryKeys=" + id,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                table.reload('grid', { curr: currentPage });
+            }
+        });
+    }
+    function edit(id,name) {
+        $.formSubmit({
+            url: '/TestCenterSystem/ScreeningTool/JudgmentAuthority?primaryKey=' + id,
+            showMsg: false,
+            success: function (data) {
+                if (data) {
+                    parent.tab.tabAdd({
+                        href: "/TestCenterSystem/ScreeningTool/Form?primaryKey=" + id,
+                        icon: "",
+                        title: "【" + name + "】编辑",
+                    });
+
+                    //$.layerOpen({
+                    //    id: "detail",
+                    //    title: "【" + name + "】编辑",
+                    //    width: "1000px",
+                    //    height: "680px",
+                    //    content: "/TestCenterSystem/ScreeningTool/Form?primaryKey=" + id,
+                    //    //btn: null
+                    //});
+                }
+                else
+                    $.layerMsg("您没有权限进行编辑，请选择引用功能！", "warning");
+            }
+        });
+        //layer.close(index);
+    }
+    function select(id, name) {
+        parent.tab.tabAdd({
+            href: "/TestCenterSystem/ScreeningTool/Form?primaryKey=" + id,
+            icon: "",
+            title: "【"+name+"】查看"
+        });
+        //var no = totalCount + 1;
+        //$.layerOpen({
+        //    id: "detail",
+        //    title: "查看",
+        //    width: "680px",
+        //    height: "490px",
+        //    content: "/TestCenterSystem/DataItem/Detail?ItemCount=" + no + "&primaryKey=" + id,
+        //    btn: null
+        //});
+    }
+    function quote(id, name) {
+        parent.tab.tabAdd({
+            href: "/TestCenterSystem/ScreeningTool/Form?primaryKey=" + id,
+            icon: "",
+            title: "【" + name + "】引用" ,
+            //id: 1
+        });
+        //$.layerOpen({
+        //    id: "detail" + id,
+        //    name: "",
+        //    title: "引用",
+        //    width: "1000px",
+        //    height: "618px",
+        //    content: "/TestCenterSystem/CustomItem/Index1?primaryKey=" + id,
+        //    btn: null
+        //});
+    }
+
+    function btn_add() {
+        //$.layerOpen({
+        //    id: "add",
+        //    title: "添加",
+        //    width: "690px",
+        //    height: "490px",
+        //    content: "/TestCenterSystem/ScreeningTool/Form",//?ItemCount=" + no,
+        //    yes: function (iBody) {
+        //        iBody.find('#btnSubmit').click();
+        //        table.reload('grid');
+        //    }
+        //});
+        parent.tab.tabAdd({
+            href: "/TestCenterSystem/ScreeningTool/Form",
+            icon: "",
+            title: "添加"
+        });
+    }
+
+    function btn_batchDelete() {
+        var primaryKeys = '';
+        var checkStatus = table.checkStatus('grid')
+            , select = checkStatus.data;
+        if (select.length == 0) {
+            $.layerMsg("请勾选要删除的项", "warning");
+            return;
+        }
+        //先判断选中信息 是否正在查看、编辑或引用
+        for (var i = 0; i < select.length; i++) {
+            for (var j = 0; j < parent.length; j++) {
+                if (parent[j].document.URL.indexOf("/TestCenterSystem/ScreeningTool/Form?primaryKey=" + select[i].SD_ITEM_ID) > 0) {
+                    $.layerMsg("【"+select[i].SD_ITEM_NAME + "】正在被查看、编辑或引用，不能删除！", "warning");
+                    return;
+                }
+            }
+        }
+        for (var i = 0; i < select.length; i++) {
+            if (i == select.length - 1)
+                primaryKeys += select[i].SD_ITEM_ID;
+            else
+                primaryKeys += (select[i].SD_ITEM_ID + ";");
+        }
+        $.layerOpen({
+            id: "delete",
+            title: "请选择删除内容",
+            width: "400px",
+            height: "240px",
+            content: "/TestCenterSystem/ScreeningTool/DeleteForm?primaryKeys=" + primaryKeys,
+            yes: function (iBody) {
+                iBody.find('#btnSubmit').click();
+                table.reload('grid', { curr: currentPage });
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,374 @@
+﻿@{
+    ViewBag.Title = "Form";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<form id="form" class="layui-form" style="margin-top: 25px">
+    @Html.AntiForgeryToken()
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">指标代码</label>
+            <div class="layui-input-inline">
+                <input type="hidden" name="SD_EKPI_ID" />
+                <input type="text" name="SD_EKPI_CODE" maxlength="20" placeholder="自动生成指标代码" disabled autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">指标类别</label>
+            <div class="layui-input-inline">
+                <select name="SD_EKPI_CAT" lay-verify="required">
+                    <option value="">请选择类别</option>
+                    @{
+                        if (ViewBag.ItemType == null)
+                        {
+                        }
+                        else
+                        {
+                            var list = ViewBag.ItemType;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                <option value="@list[i].CAT_ID">@list[i].CAT_NAME</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            @*<div class="layui-input-inline">
+                    <select name="SD_EKPI_CAT" lay-verify="required">
+                        <option value="">请选择类别</option>
+                        <option value="10000">基本信息</option>
+                        <option value="10001">检查</option>
+                        <option value="10002">检验</option>
+                        <option value="10003">医嘱</option>
+                        <option value="10004">病理</option>
+                    </select>
+                </div>*@
+        </div>
+
+        <div class="layui-inline" style="display:none">
+            <label class="layui-form-label">有效标志</label>
+            <div class="layui-input-inline">
+                <input type="text" name="VALID_FLAG" maxlength="60" placeholder="请输入指标名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">指标名称</label>
+            <div class="layui-input-inline" style="width:515px;">
+                <input type="text" name="SD_EKPI_NAME" lay-verify="required" maxlength="100" placeholder="请输入指标名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">质控点</label>
+            <div class="layui-input-inline" style="width:515px;">
+                <input type="text" name="SD_EKPI_ALIAS" lay-verify="required" maxlength="200" placeholder="请输入指标简称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">正负向</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="IS_POSITIVE" value="1" title="正向&nbsp" checked>
+                <input type="radio" lay-skin="primary" name="IS_POSITIVE" value="0" title="负向&nbsp&nbsp">
+                <input type="radio" lay-skin="primary" name="IS_POSITIVE" value="2" title="其他&nbsp&nbsp">
+            </div>
+        </div>
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="SD_EKPI_TYPE" value="1" title="非统计类&nbsp" checked>
+                <input type="radio" lay-skin="primary" name="SD_EKPI_TYPE" value="2" title="统计类&nbsp&nbsp">
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">单位</label>
+            <div class="layui-input-block">
+                <input type="text" name="SD_EKPI_UNIT" maxlength="60" placeholder="单位" autocomplete="off" class="layui-input" value="%">
+            </div>
+        </div>
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">比值模式</label>
+            <div class="layui-input-block">
+                <div class="layui-input-inline">
+                    <select name="SD_EKPI_CONVER" lay-verify="required">
+                        <option value="">请选择类别</option>
+                        <option value="0">正常模式</option>
+                        <option value="1" selected="selected">百分比</option>
+                        <option value="2">千分比</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">开启</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="IS_TREND" lay-skin="primary" value="true" checked title="趋势">
+                <input type="checkbox" name="IS_DISTRIBUTION" lay-skin="primary" value="true" checked title="科室">
+                <input type="checkbox" name="IS_RSN" lay-skin="primary" value="true" checked title="原因分析">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">排序码</label>
+            <div class="layui-input-inline">
+                <input type="text" name="ORDER_NO" maxlength="60" lay-verify="required" value="@ViewBag.count" placeholder="顺序号" autocomplete="off" class="layui-input">
+                @*<select name="ORDER_NO" id="ORDER_NO" lay-verify="required">
+                        <option value="">请选择排序码</option>
+                        @for (var num = 1; num <= ViewBag.count; num++)
+                        {
+                            if (num == ViewBag.count)
+                            {
+                                <option value="@num" selected>@num</option>
+                            }
+                            else
+                            {
+                                <option value="@num">@num</option>
+                            }
+                        }
+                    </select>*@
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">分母为1</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="IS_NUM" value="1" title="是&nbsp&nbsp">
+                <input type="radio" lay-skin="primary" name="IS_NUM" value="0" checked title="否&nbsp&nbsp">
+            </div>
+        </div>
+        <div class="layui-inline" style="width:310px;">
+            <label class="layui-form-label">动态基线</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="IS_DYNAMIC" value="1" title="是&nbsp&nbsp">
+                <input type="radio" lay-skin="primary" name="IS_DYNAMIC" value="0" checked title="否&nbsp&nbsp">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width: 310px;">
+            <label class="layui-form-label">柏拉图</label>
+            <div class="layui-input-block">
+                <input type="text" name="SD_EKPI_PLATONAME" maxlength="60" placeholder="请输入柏拉图显示名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 310px;">
+            <label class="layui-form-label">小数位数</label>
+            <div class="layui-input-block">
+                <div class="layui-input-inline">
+                    <select name="NUM_PRECISION" lay-verify="required">
+                        <option value="">请选择位数</option>
+                        <option value="0" selected="selected">0位</option>
+                        <option value="1">1位</option>
+                        <option value="2">2位</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width: 310px;">
+            <label class="layui-form-label">编辑公式</label>
+            <div class="layui-input-block">
+                <input type="radio" lay-skin="primary" name="VALUE_TABLE_ID" value="1" checked title="是&nbsp&nbsp">
+                <input type="radio" lay-skin="primary" name="VALUE_TABLE_ID" value="2" title="否&nbsp&nbsp">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <textarea id="ekpi_item" name="SD_EKPI_ITEM"></textarea>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline show-param">
+            <label class="layui-form-label">展示参数</label>
+            <div class="layui-input-inline">
+                <input type="text" class="show-param-sdItemId" value="" style="display: none" />
+                <input type="text" maxlength="100" placeholder="请设置应用端展示参数" readonly="readonly" class="layui-input itemName" onclick="ItemOpen(this)" />
+            </div>
+            <div class="layui-input-inline item-desc" style="display: none">
+                <input type="text" maxlength="100" lay-verify="show" placeholder="请输入应用端展示名称" class="layui-input" />
+            </div>
+            <div class="layui-input-inline" style="width:60px;margin-top:6px;">
+                <div class="layui-btnDel-div-rule" style="display: none">
+                    <i class="layui-icon" style="font-size: 20px;width: 30px">&#x1006;</i>
+                </div>
+                <div class="layui-btnAdd-div-rule">
+                    <i class="layui-icon" style="font-size: 20px;width: 30px">&#xe608;</i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">逻辑描述</label>
+        <div class="layui-input-inline" style="width: 514px;">
+            <textarea name="SD_EKPI_ALGO" lay-verify="required" placeholder="请输入逻辑描述内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">计算描述</label>
+        <div class="layui-input-inline" style="width: 514px;">
+            <textarea name="SD_EKPI_DESC" placeholder="请输入计算描述内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none">
+        <div class="layui-input-inline">
+            <button id="btnSubmit" class="layui-btn" lay-submit lay-filter="add">提交</button>
+        </div>
+    </div>
+</form>
+<script>
+    var form;
+    layui.use('form', function () {
+        form = layui.form();
+        var primaryKey = $.getQueryString("primaryKey");
+        if (primaryKey) {
+            $.ajax({
+                url: "/TestCenterSystem/KPI/GetForm",
+                data: { primaryKey: primaryKey },
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form").formSerialize(data);
+                    ShowItem(primaryKey);
+                }
+            });
+        }
+        //initOrders();
+        //自定义验证规则
+        form.verify({
+            ORDER_NO: function (value) {
+                if (value < 1) {
+                    return '请填写正整数。';
+                }
+            },
+            show: function (value, item) {
+                var id = item.parentElement.parentElement.children.item(1).lastElementChild.value;
+                if (value === "" && id !== "") {
+                    return "展示名称必填";
+                }
+            }
+
+        });
+        form.render();
+
+        form.on('submit(add)', function (data) {
+            var count = $("div.show-param").length;
+            var list = [];
+            for (var i = 0; i < count; i++) {
+                var param = {};
+                var id = $("div.show-param").eq(i).find("input.show-param-sdItemId").val();
+                var desc = $("div.show-param").eq(i).find("div.item-desc").find("input").val();
+                if (id !== "") {
+                    param["SD_ITEM_ID"] = id;
+                    param["ITEM_DESC"] = desc;
+                    list.push(param);
+                }
+            }
+            data.field.SD_EKPI_ITEM = list.length > 0 ? JSON.stringify(list) : "";
+            $.formSubmit({
+                url: "/TestCenterSystem/KPI/Form",
+                data: data.field
+            });
+            return false;
+        });
+        //添加规则
+        $(document).on("click", "div.layui-btnAdd-div-rule", function () {
+            AddItem($(this).parents('div.show-param'));
+        });
+        //删除规则
+        $(document).on("click", "div.layui-btnDel-div-rule", function () {
+            var rule = $(this).parents('div.show-param');
+            var moduleSibling = rule.siblings("div.show-param");
+            if (moduleSibling.length > 0) {
+                rule.remove();
+            }
+            if (moduleSibling.length == 1) {
+                $(moduleSibling).find('div.layui-btnDel-div-rule').hide();
+                $(moduleSibling).find('div.layui-btnAdd-div-rule').show();
+            }
+            moduleSibling.eq(0).find("label").text("展示参数");
+        });
+    });
+    function AddItem(copyRule) {
+        //要复制的规则
+        var rule = copyRule;
+        //删除按钮显示 添加按钮不显示
+        rule.find("div.layui-btnDel-div-rule").css('display', 'inline');
+        rule.find("div.layui-btnAdd-div-rule").css('display', 'none');
+        //复制添加
+        var newRule = rule.clone();
+        newRule.find("label").text("");
+        newRule.find("input[type=text]").val("");
+        newRule.find("div.item-desc").hide();
+        newRule.insertAfter(rule);
+        //新添加按钮显示
+        newRule.find("div.layui-btnAdd-div-rule").css('display', 'inline');
+        form.render();
+    }
+    function initOrders() {
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/KPI/OrderNo",
+            data: {
+            },
+            success: function (data) {
+                var length = JSON.parse(data).count;
+
+                for (var i = 0; i < length; i++) {
+                    $("div#ORDER_NO dl").append("<option value=" + " (i + 1)" + ">" + "(i + 1)" + "</option>");
+                }
+            }
+        });
+    }
+
+    //弹出展示参数框
+    function ItemOpen(currParam) {
+        $.layerOpen({
+            id: "param",
+            title: "添加指标参数",
+            width: "950px",
+            height: "580px",
+            content: "/TestCenterSystem/KPI/ShowParam",
+            yes: function (iBody, iframeWin, index) {
+                iBody.find('#btnSubmit').click();
+                $(currParam).parents("div.show-param").find("input.show-param-sdItemId").val(iframeWin.sdItemId);
+                currParam.value = iframeWin.sdItemName;
+                $(currParam).parents("div.show-param").find("div.item-desc").show();
+                parent.layer.close(index);
+            }
+        });
+    }
+
+    function ShowItem(kpiId) {
+        $.ajax({
+            url: '/KPI/GetEkpiItem'
+            , data: { kpiId: kpiId }
+            , type: 'post'
+            , dataType: 'json'
+            , async: false
+            , success: function (result) {
+                for (var i = 0; i < result.length; i++) {
+                    if (i > 0) {
+                        AddItem($("div.show-param").eq(i - 1));
+                    }
+                    $("div.show-param").eq(i).find("input.show-param-sdItemId").val(result[i].SD_ITEM_ID);
+                    $("div.show-param").eq(i).find("input.itemName").val(result[i].UPD_USER_ID);
+                    $("div.show-param").eq(i).find("div.item-desc").show();
+                    $("div.show-param").eq(i).find("div.item-desc").find("input").val(result[i].ITEM_DESC);
+                }
+
+            }
+        });
+    }
+</script>

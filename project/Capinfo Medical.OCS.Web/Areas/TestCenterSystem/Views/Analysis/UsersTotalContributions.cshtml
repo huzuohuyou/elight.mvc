@@ -1,0 +1,163 @@
+﻿
+
+<div id="totalContributions" style="margin-top: 0px; height: 300px">
+    <div id="UTotalCondata"></div>
+</div>
+
+<script type="text/javascript">
+    //initTotalCon();
+    function initTotalCon() {
+        var projectId = $("#project")[0].value;
+        var sdId = $("#desease")[0].value;
+        $.ajax({
+            type: "GET",
+            url: "/TestCenterSystem/ProgressAndAnalysis/GetUsersContributions",
+            data: { "projectId": projectId, "sdId": sdId },
+            success: function (obj) {
+                if (obj != null || obj != "") {
+                    opt = {
+                        width: $('#totalContributions')[0].width,
+                        height: 300
+                    }
+                    var chart = echarts.init($('#UTotalCondata')[0], null, opt); //document.getElementById('ingroup')
+                    chart.setOption(getUConOption(obj, true));
+                }
+            }
+        });
+    }
+
+    function getUConOption(obj, isShowLegend) {
+        var users = isShowLegend === true ? obj.users : []; 
+        option = {
+            title: {
+                text: '贡献量',
+                bottom: '1%',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    mark: { show: true },
+                    dataView: {
+                        show: true,
+                        readOnly: true,//为false时界面上会显示刷新按钮
+                        optionToContent: function (opt) {
+                            var series = opt.series; //饼图数据
+                            var users = opt.legend[0].data;//图例
+                            var tdHeads = '<td  style="padding: 0 80px">姓名</td>'; //表头
+                            var tdBodys = ''; //数据
+                            series.forEach(function (item) {
+                                //组装表头
+                                tdHeads += `<td style="padding: 0 80px">总贡献量（个）</td>`;
+                            });
+                            //tdHeads += `<td style="padding: 0 80px">${"总量"}</td>`;
+                            var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                            for (var i = 0, l = users.length; i < l; i++) {
+                                //var num = 0;
+                                for (var j = 0; j < series.length; j++) {
+                                    var count = 0;
+                                    //组装表数据
+                                    for (var a = 0; a < series[j].data.length; a++) {
+                                        if (series[j].data[a].name == users[i]) {
+                                            count++;
+                                            tdBodys += `<td>${series[j].data[a].value}</td>`;
+                                            //num = num + series[j].data[a].value;
+                                            break;
+                                        }
+                                    }
+                                    if (count == 0) {
+                                        tdBodys += `<td>0</td>`;
+                                    }
+                                }
+                                //tdBodys += `<td>${num}</td>`;
+                                table += `<tr><td style="padding: 0 80px">${users[i]}</td>${tdBodys}</tr>`;
+                                tdBodys = '';
+                            }
+                            table += '</tbody></table>';
+                            return table;
+                        }
+                    },
+                    //dataView: {
+                    //    show: true,
+                    //    readOnly: true,//为false时界面上会显示刷新按钮
+                    //    optionToContent: function (opt) {
+                    //        var series = opt.series; 
+                    //        var users = opt.legend[0].data;
+                    //        var tdHeads = '<td  style="padding: 0 0px;width:80px">姓名</td>'; 
+                    //        var tdBodys = ''; 
+                    //        var table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:16px;text-align:center"><tbody>`;
+                    //        for (var i = 0, l = users.length; i < l; i++) {
+                    //            //var num = 0;
+                    //            for (var j = 0; j < series.length; j++) {
+                    //                var count = 0;
+                    //                //组装表数据
+                    //                for (var a = 0; a < series[j].data.length; a++) {
+                    //                    if (series[j].data[a].name == users[i]) {
+                    //                        count++;
+                    //                        tdBodys += `<td style="width:100px">${series[j].data[a].value}</td>`;
+                    //                        //num = num + series[j].data[a].value;
+                    //                        break;
+                    //                    }
+                    //                }
+                    //                if (count == 0) {
+                    //                    tdBodys += `<td>0</td>`;
+                    //                }
+                    //            }
+                    //            tdHeads += `<td style="width:100px">${users[i]}</td>`;
+                    //        }
+                    //        table += `<tr>${tdHeads}</tr>`;
+                    //        table += `<tr><td style="padding: 0 0px;width:80px">总贡献量（个）</td>${tdBodys}</tr>`;
+                    //        table += '</tbody></table>';
+                    //        return table;
+                    //    }
+                    //},
+                    magicType: {
+                        show: true,
+                        type: ['pie', 'funnel']
+                    },
+                    restore: { show: false },
+                    saveAsImage: { show: true }
+                }
+            },
+            series: [
+                {
+                    name: '贡献量',
+                    type: 'pie',
+                    center: ['50%', "50%"],
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '20',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data: obj.data
+                },
+            ],
+            legend: {
+                orient: 'vertical',
+                x: 'left',
+                //y: 'bottom',
+                data: users
+            }
+        };
+        return option;
+    }
+</script>
