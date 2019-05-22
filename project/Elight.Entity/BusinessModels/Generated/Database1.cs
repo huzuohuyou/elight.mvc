@@ -551,7 +551,7 @@ namespace Elight.Entity
 
 
 
-	[PrimaryKey("Id")]
+	[PrimaryKey("Id", AutoIncrement = false)]
 
 
 
@@ -562,14 +562,29 @@ namespace Elight.Entity
     {
 
 
+        private string id;
+        [Column]
+        public string Id
+        {
+            get
+            {
+                if (id == "")
+                {
+                    return Guid.NewGuid().ToString();
+                }
+                return id;
+            }
+            set
+            {
+                id = value;
+            }
+        }
 
-		[Column] public string Id { get; set; }
 
 
 
 
-
-		[Column] public string ParentId { get; set; }
+        [Column] public string ParentId { get; set; }
 
 
 

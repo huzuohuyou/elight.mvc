@@ -57,6 +57,18 @@
       <Project>{a2475fc1-589f-46b3-ac20-e57e621cc994}</Project>
       <Name>Elight.Entity</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Elight.Infrastructure\Elight.Infrastructure.csproj">
+      <Project>{f0e21eaa-5032-4e90-a0be-411c67c8ce82}</Project>
+      <Name>Elight.Infrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Elight.IRepository\Elight.IRepository.csproj">
+      <Project>{eb66aee0-6d8c-42ea-a19d-59d5090fee40}</Project>
+      <Name>Elight.IRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Elight.Repository\Elight.Repository.csproj">
+      <Project>{d9dcf45e-dd12-43f9-a601-ff02b30607b7}</Project>
+      <Name>Elight.Repository</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

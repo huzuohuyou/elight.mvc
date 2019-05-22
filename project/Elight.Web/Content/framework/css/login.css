@@ -8,7 +8,7 @@ html, body {
 }
 
     html, body:before {
-        background: url(/Content/framework/images/login.jpg);
+        background: url(/Content/framework/images/login.jpeg?v=1);
         background-size: 100% 100%;
         -moz-background-size: 100% 100%;
         -webkit-background-size: 100% 100%;
@@ -26,7 +26,7 @@ html, body {
     width: 450px;
     padding-top: 120px;
     height: inherit;
-    background-color: #fff;
+    background-color: #ffffff75;
     color: aliceblue;
     box-shadow: 0px 0px 5px rgba(53,51,51,0.5);
 }

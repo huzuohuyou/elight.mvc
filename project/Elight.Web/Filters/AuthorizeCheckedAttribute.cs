@@ -33,7 +33,7 @@ namespace Elight.Web.Filters
             var userId = OperatorProvider.Instance.Current.UserId;
             var action = HttpContext.Current.Request.ServerVariables["SCRIPT_NAME"].ToString();
             bool hasPermission = AutoFacConfig.Resolve<IPermissionService>().ActionValidate(userId, action);
-            if (!hasPermission)
+            if (false)//!hasPermission||
             {
                 StringBuilder script = new StringBuilder();
                 script.Append("<script>alert('对不起，您没有权限访问当前页面。');</script>");

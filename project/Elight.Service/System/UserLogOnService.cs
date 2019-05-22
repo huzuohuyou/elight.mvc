@@ -23,7 +23,7 @@ namespace Elight.Service
         {
             model.Id = Guid.NewGuid().ToString();
             model.SecretKey = model.Id.DESEncrypt().Substring(0, 8);
-            model.Password = model.Password.MD5Encrypt();//.DESEncrypt(model.SecretKey).MD5Encrypt();
+            model.Password = model.Password.DESEncrypt(model.SecretKey).MD5Encrypt();
             model.LoginCount = 0;
             model.IsOnLine = false;
             return _userLogOnRepository.Insert(model);

@@ -13,23 +13,13 @@
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
     <link rel="bookmark" type="image/ico" href="~/favicon.ico" />
     <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
-    <link href="~/Content/framework/css/login.css" rel="stylesheet" />
+    <link href="~/Content/framework/css/login.css?v=1" rel="stylesheet" />
     <link href="~/Content/framework/css/animate.css" rel="stylesheet" />
 </head>
 <body>
-    <div class="elight-product-box animated fadeInUp">
-        <h2>Elight.MVC通用管理系统轻量级解决方案</h2>
-        <ul class="product-desc">
-            <li>演示用户名：admin密码：6个0</li>
-        </ul>
-        <div class="product-btns">
-            <a class="layui-btn layui-btn-normal layui-btn-small" target="_blank" href="http://www.cnblogs.com/esofar/p/7093511.html"><i class="layui-icon">&#xe609;</i>&nbsp;框架介绍</a>
-            <a class="layui-btn layui-btn-warm layui-btn-small" target="_blank" href="https://github.com/esofar/elight.mvc"><i class="layui-icon">&#xe601;</i>&nbsp;贡献代码</a>
-            <a class="layui-btn layui-btn-danger layui-btn-small" target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=973095739&site=qq&menu=yes"><i class="layui-icon">&#xe606;</i>&nbsp;联系作者</a>
-        </div>
-    </div>
+    
     <div class="elight-login-box animated fadeInRight">
-        <div class="elight-login-header">Elight.MVC在线演示</div>
+        <div class="elight-login-header">CTS</div>
         <div class="elight-login-body">
             <form class="layui-form">
                 <div class="layui-form-item">
@@ -42,14 +32,7 @@
                     </label>
                     <input type="password" name="password" lay-verify="required" autocomplete="off" placeholder="登陆密码" class="layui-input">
                 </div>
-                <div class="layui-form-item">
-                    <div class="login-code-box">
-                        <label class="login-icon"><i class="layui-icon">&#xe62d;</i></label>
-                        <input type="text" name="verifycode" lay-verify="required" autocomplete="off" placeholder="验证码" class="layui-input">
-                        <img id="verifyCode" src="/Account/VerifyCode" title="点击更换验证码">
-                    </div>
-                    <input class="elight-pull-right" type="checkbox" lay-skin="primary" name="isSaveAccount" value="true" title="记住账号" />
-                </div>
+                
                 <div class="layui-form-item">
                     <button class="layui-btn btn-submit" lay-submit lay-filter="login">立即登录</button>
                 </div>
@@ -91,8 +74,8 @@
             });
             return false;
         });
-        $("#verifyCode").click(function () {
-            $(this).attr("src", "/Account/VerifyCode?r=" + Math.random());
-        });
+        //$("#verifyCode").click(function () {
+        //    $(this).attr("src", "/Account/VerifyCode?r=" + Math.random());
+        //});
     });
 </script>

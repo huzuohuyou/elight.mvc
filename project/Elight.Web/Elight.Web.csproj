@@ -7,7 +7,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{EA256735-D3ED-41AE-A102-E8332BE8C71E}</ProjectGuid>
+    <ProjectGuid>{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <Use64BitIISExpress />
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -47,10 +48,19 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Autofac.Mvc5.4.0.2\lib\net45\Autofac.Integration.Mvc.dll</HintPath>
     </Reference>
+    <Reference Include="Elight.Tools.Utils">
+      <HintPath>..\..\dlls\Elight.Tools.Utils.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=6.7.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.6.7.9\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -107,6 +117,9 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Areas\IDIS\Views\IncomeOvertheSamePeriod\Form.cshtml" />
+    <Content Include="Areas\IDIS\Views\IncomeOvertheSamePeriod\Index.cshtml" />
+    <Content Include="Areas\IDIS\Views\web.config" />
     <Content Include="Content\echarts\echarts.common.js" />
     <Content Include="Content\echarts\echarts.common.min.js" />
     <Content Include="Content\echarts\echarts.js" />
@@ -124,7 +137,8 @@
     <Content Include="Content\framework\css\console.css" />
     <Content Include="Content\framework\css\index.css" />
     <Content Include="Content\framework\css\login.css" />
-    <Content Include="Content\framework\images\login.jpg" />
+    <Content Include="Content\framework\images\login.jpeg" />
+    <Content Include="Content\framework\images\login1.jpg" />
     <Content Include="Content\framework\js\canvas.min.js" />
     <Content Include="Content\framework\js\common.js" />
     <Content Include="Content\framework\js\donate.js" />
@@ -321,6 +335,11 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Areas\CTS\Controllers\ReservationDetailController.cs" />
+    <Compile Include="Areas\CTS\Controllers\ReservationController.cs" />
+    <Compile Include="Areas\CTS\CTSAreaRegistration.cs" />
+    <Compile Include="Areas\IDIS\Controllers\IncomeOvertheSamePeriodController.cs" />
+    <Compile Include="Areas\IDIS\IDISAreaRegistration.cs" />
     <Compile Include="Areas\System\Controllers\ItemController.cs" />
     <Compile Include="Areas\System\Controllers\ItemsDetailController.cs" />
     <Compile Include="Areas\System\Controllers\LogController.cs" />
@@ -331,8 +350,6 @@
     <Compile Include="Areas\System\Controllers\UserController.cs" />
     <Compile Include="Areas\System\Controllers\UserLogOnController.cs" />
     <Compile Include="Areas\System\SystemAreaRegistration.cs" />
-    <Compile Include="Areas\TestCenter\Controllers\InGroupController.cs" />
-    <Compile Include="Areas\TestCenter\TestCenterAreaRegistration.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -394,8 +411,11 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Views\Account\Login.cshtml" />
-    <Content Include="Areas\TestCenter\Views\web.config" />
-    <Content Include="Areas\TestCenter\Views\InGroup\Index.cshtml" />
+    <Content Include="Areas\CTS\Views\web.config" />
+    <Content Include="Areas\CTS\Views\Reservation\Index.cshtml" />
+    <Content Include="Areas\CTS\Views\Reservation\Form.cshtml" />
+    <Content Include="Areas\CTS\Views\ReservationDetail\Index.cshtml" />
+    <Content Include="Areas\IDIS\Views\IncomeOvertheSamePeriod\Detail.cshtml" />
     <None Include="Properties\PublishProfiles\ad.pubxml" />
     <None Include="Properties\PublishProfiles\elight.pubxml" />
     <Content Include="Views\Account\ModifyPwd.cshtml" />
@@ -408,12 +428,18 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Areas\CTS\Models\" />
+    <Folder Include="Areas\CTS\Views\Shared\" />
+    <Folder Include="Areas\IDIS\Models\" />
+    <Folder Include="Areas\IDIS\Views\Shared\" />
     <Folder Include="Areas\System\Models\" />
     <Folder Include="Areas\System\Views\Shared\" />
-    <Folder Include="Areas\TestCenter\Models\" />
-    <Folder Include="Areas\TestCenter\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\RDLC_DEMO\RDLC_DEMO\In-hospital Indicators.Service.csproj">
+      <Project>{a1459fd1-49ca-441a-ba87-516c80da9163}</Project>
+      <Name>In-hospital Indicators.Service</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Elight.Entity\Elight.Entity.csproj">
       <Project>{a2475fc1-589f-46b3-ac20-e57e621cc994}</Project>
       <Name>Elight.Entity</Name>
@@ -422,9 +448,21 @@
       <Project>{f0e21eaa-5032-4e90-a0be-411c67c8ce82}</Project>
       <Name>Elight.Infrastructure</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Elight.IRepository\Elight.IRepository.csproj">
+      <Project>{eb66aee0-6d8c-42ea-a19d-59d5090fee40}</Project>
+      <Name>Elight.IRepository</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Elight.IService\Elight.IService.csproj">
       <Project>{d9b8906b-a20f-418d-8923-055f94f61579}</Project>
       <Name>Elight.IService</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Elight.Repository\Elight.Repository.csproj">
+      <Project>{d9dcf45e-dd12-43f9-a601-ff02b30607b7}</Project>
+      <Name>Elight.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Elight.Service\Elight.Service.csproj">
+      <Project>{0f8031fb-ae93-4732-9aa9-da5bd9d183f8}</Project>
+      <Name>Elight.Service</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

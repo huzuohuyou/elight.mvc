@@ -26,9 +26,9 @@ namespace Elight.Service
 
         public override object Insert(Sys_Permission model)
         {
+            var _layer = _permissionRepository.Get(model.ParentId);
             model.Id = Guid.NewGuid().ToString();
-            model.Layer = model.ParentId!="-1"? _permissionRepository.Get(model.ParentId).Layer += 1:0;
-            model.ParentId = model.ParentId == "-1" ? "0" : model.ParentId;
+            model.Layer = _layer == null?0: _layer.Layer += 1;
             model.IsEnable = model.IsEnable == null ? false : true;
             model.IsEdit = model.IsEdit == null ? false : true;
             model.IsPublic = model.IsPublic == null ? false : true;
@@ -42,7 +42,7 @@ namespace Elight.Service
 
         public override int Update(Sys_Permission model)
         {
-            model.Layer = (model.ParentId != null&& model.ParentId != "-1") ? _permissionRepository.Get(model.ParentId).Layer += 1:0;
+            model.Layer = _permissionRepository.Get(model.ParentId).Layer += 1;
             model.IsEnable = model.IsEnable == null ? false : true;
             model.IsEdit = model.IsEdit == null ? false : true;
             model.IsPublic = model.IsPublic == null ? false : true;

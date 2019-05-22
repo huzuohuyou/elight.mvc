@@ -52,7 +52,6 @@
     <Compile Include="System\IUserRepository.cs" />
     <Compile Include="System\IUserRoleRelationRepository.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Elight.Entity\Elight.Entity.csproj">
       <Project>{a2475fc1-589f-46b3-ac20-e57e621cc994}</Project>

@@ -44,14 +44,14 @@ namespace Elight.Web.Controllers
         [HttpPost]
         public ActionResult Login(string userName, string password, string verifyCode)
         {
-            if (userName.IsNullOrEmpty() || password.IsNullOrEmpty() || verifyCode.IsNullOrEmpty())
-            {
-                return Error("请求失败，缺少必要参数。");
-            }
-            if (verifyCode.ToLower() != WebHelper.GetSession(Keys.SESSION_KEY_VCODE))
-            {
-                return Warning("验证码错误，请重新输入。");
-            }
+            //if (false||userName.IsNullOrEmpty() || password.IsNullOrEmpty() || verifyCode.IsNullOrEmpty())
+            //{
+            //    return Error("请求失败，缺少必要参数。");
+            //}
+            //if (verifyCode.ToLower() != WebHelper.GetSession(Keys.SESSION_KEY_VCODE))
+            //{
+            //    return Warning("验证码错误，请重新输入。");
+            //}
             var userEntity = _userService.GetByUserName(userName);
             if (userEntity == null)
             {
@@ -62,8 +62,8 @@ namespace Elight.Web.Controllers
                 return Warning("该账户已被禁用，请联系管理员。");
             }
             var userLogOnEntity = _userLogOnService.GetByAccount(userEntity.Id);
-            //string inputPassword = password.MD5Encrypt();//.DESEncrypt(userLogOnEntity.SecretKey).MD5Encrypt();
-            if (password != userLogOnEntity.Password)
+            string inputPassword = password.DESEncrypt(userLogOnEntity.SecretKey).MD5Encrypt();
+            if (inputPassword != userLogOnEntity.Password)
             {
                 LogHelper.Write(Level.Info, "系统登录", "密码错误", userEntity.Account, userEntity.RealName);
                 return Warning("密码错误，请重新输入。");

@@ -24,7 +24,8 @@
         <div class="layui-inline">
             <label class="layui-form-label">上级</label>
             <div class="layui-input-inline">
-                <select class="select2" lay-ignore name="ParentId" id="ParentId" style="width: 190px"></select>
+                <select class="select2" lay-ignore name="ParentId" lay-verify="required" id="ParentId" style="width: 190px">
+                </select>
             </div>
         </div>
         <div class="layui-inline">
@@ -114,6 +115,7 @@
     layui.use(['form', 'layer'], function () {
         var form = layui.form();
         var layer = layui.layer;
+
         $("#ParentId").bindSelect({
             url: "/System/Organize/GetListTreeSelect"
         });
