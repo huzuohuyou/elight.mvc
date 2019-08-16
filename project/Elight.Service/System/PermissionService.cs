@@ -42,7 +42,7 @@ namespace Elight.Service
 
         public override int Update(Sys_Permission model)
         {
-            model.Layer = _permissionRepository.Get(model.ParentId).Layer += 1;
+            model.Layer = _permissionRepository.Get(model.ParentId)?.Layer + 1;
             model.IsEnable = model.IsEnable == null ? false : true;
             model.IsEdit = model.IsEdit == null ? false : true;
             model.IsPublic = model.IsPublic == null ? false : true;

@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elight.Web", "Elight.Web\Elight.Web.csproj", "{EA256735-D3ED-41AE-A102-E8332BE8C71E}"
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.539
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elight.Web", "Elight.Web\Elight.Web.csproj", "{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elight.UnitTest", "Elight.UnitTest\Elight.UnitTest.csproj", "{FAE2DBD6-5E5F-4BB4-86B9-CEEBFC6387E7}"
 EndProject
@@ -23,10 +25,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EA256735-D3ED-41AE-A102-E8332BE8C71E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA256735-D3ED-41AE-A102-E8332BE8C71E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA256735-D3ED-41AE-A102-E8332BE8C71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA256735-D3ED-41AE-A102-E8332BE8C71E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0694E8E-6EA1-4837-B8A3-3E1B2329E23D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FAE2DBD6-5E5F-4BB4-86B9-CEEBFC6387E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FAE2DBD6-5E5F-4BB4-86B9-CEEBFC6387E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAE2DBD6-5E5F-4BB4-86B9-CEEBFC6387E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -58,5 +60,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {66B67285-C38C-4E0D-A961-3C5B8A576CA0}
 	EndGlobalSection
 EndGlobal
